@@ -1,4 +1,6 @@
 import gspread
+import os
+import json
 from oauth2client.service_account import ServiceAccountCredentials
 
 scope = [
@@ -6,15 +8,12 @@ scope = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-credenciales = ServiceAccountCredentials.from_json_keyfile_name(
-    "credenciales.json", scope
-)
+credenciales_dict = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+credenciales = ServiceAccountCredentials.from_json_keyfile_dict(credenciales_dict, scope)
 
 cliente = gspread.authorize(credenciales)
 
 def abrir_hoja(nombre):
-
     archivo = cliente.open("LISTAS-CLUBES")
     hoja = archivo.worksheet(nombre)
-
     return hoja
