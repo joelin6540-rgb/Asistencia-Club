@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request
 from sheets import abrir_hoja
 from datetime import datetime
+import pytz
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -76,8 +78,9 @@ def guardar(club):
 
     alumnos_presentes = request.form.getlist("alumnos")
 
-    hoy = datetime.now().day
-    mes_actual = MESES[datetime.now().month]
+    zona = pytz.timezone("America/Mexico_City")
+    hoy = datetime.now(zona).day
+    mes_actual = MESES[datetime.now(zona).month]
     buscar_mes = "ASISTENCIA " + mes_actual
 
     datos = hoja.get_all_values()
