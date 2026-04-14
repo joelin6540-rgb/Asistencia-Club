@@ -1,0 +1,19 @@
+<h2>Lista de asistencia</h2>
+
+<form method="POST" action="/guardar/{{ club }}">
+
+{% for alumno in alumnos %}
+
+<label>
+<input type="checkbox" name="alumnos" value="{{ alumno }}"> {{ alumno }}
+</label>
+
+<br>
+
+{% endfor %}
+
+<br>
+
+<button type="submit">Guardar asistencia</button>
+
+</form>
