@@ -8,9 +8,9 @@ import os
 
 app = Flask(__name__)
 
-# -----------------------
+# --------------------------------
 # CONEXIÓN GOOGLE SHEETS
-# -----------------------
+# --------------------------------
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -26,9 +26,9 @@ creds = Credentials.from_service_account_info(
 
 cliente = gspread.authorize(creds)
 
-# -----------------------
+# --------------------------------
 # CONFIGURACIÓN CLUBES
-# -----------------------
+# --------------------------------
 
 CLUBES = {
     "tenis": {
@@ -41,31 +41,34 @@ CLUBES = {
     }
 }
 
-# -----------------------
+# --------------------------------
 # ABRIR HOJA
-# -----------------------
+# --------------------------------
 
 def abrir_hoja(nombre):
     return cliente.open("LISTAS-CLUBES").worksheet(nombre)
 
-# -----------------------
-# BUSCAR FILA NOMBRE
-# -----------------------
+# --------------------------------
+# ENCONTRAR FILA DE NOMBRES
+# --------------------------------
 
 def encontrar_fila_nombres(hoja):
 
     datos = hoja.get_all_values()
 
     for i, fila in enumerate(datos):
+
         if len(fila) > 1:
+
             if fila[1].strip().upper() == "NOMBRE":
                 return i + 2
 
     return None
 
-# -----------------------
+
+# --------------------------------
 # OBTENER ALUMNOS
-# -----------------------
+# --------------------------------
 
 def obtener_alumnos(hoja):
 
@@ -87,9 +90,10 @@ def obtener_alumnos(hoja):
 
     return alumnos
 
-# -----------------------
-# ENCONTRAR MES Y DÍA
-# -----------------------
+
+# --------------------------------
+# ENCONTRAR MES Y DÍA CORRECTO
+# --------------------------------
 
 def encontrar_columna_dia(hoja, dia):
 
@@ -117,18 +121,20 @@ def encontrar_columna_dia(hoja, dia):
 
     titulo_mes = f"ASISTENCIA {mes_actual}"
 
-    fila_mes = None
+    filas_mes = []
 
     for i, fila in enumerate(datos):
 
         texto = " ".join(fila).upper()
 
         if titulo_mes in texto:
-            fila_mes = i
-            break
+            filas_mes.append(i)
 
-    if fila_mes is None:
+    if not filas_mes:
         return None
+
+    # usar la última coincidencia
+    fila_mes = filas_mes[-1]
 
     fila_dias = datos[fila_mes + 1]
 
@@ -139,17 +145,19 @@ def encontrar_columna_dia(hoja, dia):
 
     return None
 
-# -----------------------
-# INICIO
-# -----------------------
+
+# --------------------------------
+# PÁGINA INICIO
+# --------------------------------
 
 @app.route("/")
 def inicio():
     return render_template("clubes.html")
 
-# -----------------------
-# ASISTENCIA
-# -----------------------
+
+# --------------------------------
+# LISTA ASISTENCIA
+# --------------------------------
 
 @app.route("/asistencia/<club>")
 def asistencia(club):
@@ -167,9 +175,10 @@ def asistencia(club):
         fecha=fecha
     )
 
-# -----------------------
-# GUARDAR
-# -----------------------
+
+# --------------------------------
+# GUARDAR ASISTENCIA
+# --------------------------------
 
 @app.route("/guardar/<club>", methods=["POST"])
 def guardar(club):
@@ -205,16 +214,19 @@ def guardar(club):
         fila = fila_inicio + i
 
         if nombre in alumnos_presentes:
+
             hoja.update_cell(fila, columna_dia, simbolo)
 
         else:
+
             hoja.update_cell(fila, columna_dia, "/")
 
     return render_template("confirmacion.html")
 
-# -----------------------
+
+# --------------------------------
 # ESTADÍSTICAS
-# -----------------------
+# --------------------------------
 
 @app.route("/estadisticas/<club>")
 def estadisticas(club):
@@ -247,9 +259,10 @@ def estadisticas(club):
         faltas=faltas_max
     )
 
-# -----------------------
+
+# --------------------------------
 # RUN
-# -----------------------
+# --------------------------------
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
