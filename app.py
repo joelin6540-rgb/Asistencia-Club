@@ -138,25 +138,48 @@ def estadisticas():
     for club in CLUBES:
 
         hoja = abrir_hoja(CLUBES[club]["hoja"])
-
         filas = hoja.get_all_values()
 
         peor_alumno = ""
         max_faltas = -1
 
-        for fila in filas[1:]:  # saltamos encabezados
+        alertas = []
+
+        for fila in filas[1:]:  # saltar encabezados
 
             nombre = fila[0]
+            celdas = fila[1:]
 
-            faltas = fila.count("/")
+            faltas = celdas.count("/")
 
+            clases = sum(1 for c in celdas if c != "")
+
+            asistencias = clases - faltas
+
+            porcentaje = 0
+            if clases > 0:
+                porcentaje = int((asistencias / clases) * 100)
+
+            # alumno con más faltas
             if faltas > max_faltas:
                 max_faltas = faltas
-                peor_alumno = nombre
+                peor_alumno = f"{nombre} — {faltas} faltas (de {clases} clases)"
+
+            # detectar 3 faltas seguidas
+            contador = 0
+            for c in celdas:
+                if c == "/":
+                    contador += 1
+                    if contador == 3:
+                        alertas.append(f"⚠ {nombre} tiene 3 faltas seguidas")
+                        break
+                else:
+                    contador = 0
 
         datos.append({
             "nombre": club.capitalize(),
-            "peor": f"{peor_alumno} ({max_faltas} faltas)"
+            "peor": peor_alumno,
+            "alertas": alertas
         })
 
     return render_template("estadisticas.html", estadisticas=datos)
