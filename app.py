@@ -81,8 +81,10 @@ def asistencia(club):
 
 @app.route("/guardar/<club>", methods=["POST"])
 def guardar(club):
-
     fecha = request.form.get("fecha")
+
+    if not fecha:
+        fecha = datetime.now().strftime("%Y-%m-%d")
     hoja = abrir_hoja(CLUBES[club]["hoja"])
     simbolo = CLUBES[club]["simbolo"]
 
