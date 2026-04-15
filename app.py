@@ -85,8 +85,11 @@ def asistencia(club):
     alumnos = []
 
     for nombre in columna_nombres[1:]:
-        if nombre.strip() != "":
-            alumnos.append(nombre)
+
+        if nombre.strip() == "":
+            break
+
+        alumnos.append(nombre)
 
     fecha = datetime.now().strftime("%Y-%m-%d")
 
