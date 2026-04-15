@@ -2,20 +2,20 @@ from flask import Flask, render_template, request
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
+import pytz
+import json
+import os
 
 app = Flask(__name__)
 
-# -----------------------------
+# -------------------------------
 # CONEXIÓN A GOOGLE SHEETS
-# -----------------------------
+# -------------------------------
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ]
-
-import json
-import os
 
 credenciales = json.loads(os.environ["GOOGLE_CREDENTIALS"])
 
@@ -26,9 +26,9 @@ creds = Credentials.from_service_account_info(
 
 cliente = gspread.authorize(creds)
 
-# -----------------------------
-# CONFIGURACIÓN DE CLUBES
-# -----------------------------
+# -------------------------------
+# CONFIGURACIÓN
+# -------------------------------
 
 CLUBES = {
     "tenis": {
@@ -40,10 +40,6 @@ CLUBES = {
         "simbolo": "🏀"
     }
 }
-
-# -----------------------------
-# MESES
-# -----------------------------
 
 MESES = {
     1: "ENERO",
@@ -60,49 +56,50 @@ MESES = {
     12: "DICIEMBRE"
 }
 
-# -----------------------------
+# -------------------------------
 # ABRIR HOJA
-# -----------------------------
+# -------------------------------
 
 def abrir_hoja(nombre):
     return cliente.open("LISTAS-CLUBES").worksheet(nombre)
 
-# -----------------------------
-# PÁGINA PRINCIPAL
-# -----------------------------
+# -------------------------------
+# INICIO
+# -------------------------------
 
 @app.route("/")
 def inicio():
     return render_template("clubes.html")
 
-# -----------------------------
-# PÁGINA DE ASISTENCIA
-# -----------------------------
+# -------------------------------
+# LISTA DE ASISTENCIA
+# -------------------------------
 
 @app.route("/asistencia/<club>")
 def asistencia(club):
 
     hoja = abrir_hoja(CLUBES[club]["hoja"])
+
     datos = hoja.get_all_values()
 
     alumnos = []
 
     for fila in datos[1:]:
-        if fila[0] != "":
-            alumnos.append(fila[0])
+        if len(fila) > 1 and fila[1] != "":
+            alumnos.append(fila[1])
 
-    hoy = datetime.now().strftime("%Y-%m-%d")
+    fecha = datetime.now().strftime("%Y-%m-%d")
 
     return render_template(
         "asistencia.html",
         alumnos=alumnos,
         club=club,
-        fecha=hoy
+        fecha=fecha
     )
 
-# -----------------------------
+# -------------------------------
 # GUARDAR ASISTENCIA
-# -----------------------------
+# -------------------------------
 
 @app.route("/guardar/<club>", methods=["POST"])
 def guardar(club):
@@ -113,9 +110,12 @@ def guardar(club):
         fecha = datetime.now().strftime("%Y-%m-%d")
 
     hoja = abrir_hoja(CLUBES[club]["hoja"])
+
     simbolo = CLUBES[club]["simbolo"]
 
     alumnos_presentes = request.form.getlist("alumnos")
+
+    zona = pytz.timezone("America/Mexico_City")
 
     año, mes, dia = fecha.split("-")
 
@@ -126,107 +126,66 @@ def guardar(club):
 
     datos = hoja.get_all_values()
 
-    fila_mes = None
-    fila_dias = None
     columna_dia = None
 
-    for i, fila in enumerate(datos):
+    for i, valor in enumerate(datos[0]):
+        if valor == str(dia):
+            columna_dia = i + 1
 
-        if buscar_mes in fila:
-            fila_mes = i + 1
-            fila_dias = i + 2
+    if columna_dia is None:
+        columna_dia = len(datos[0]) + 1
+        hoja.update_cell(1, columna_dia, dia)
 
-            for j, celda in enumerate(datos[i+1]):
-                if celda == str(dia):
-                    columna_dia = j + 1
-                    break
+    for i, fila in enumerate(datos[1:], start=2):
 
-            break
+        if len(fila) > 1:
 
-    if not columna_dia:
-        return "No se encontró el día en la hoja"
-
-    for i in range(fila_dias, len(datos)+1):
-
-        fila = datos[i-1]
-
-        if len(fila) > 0 and fila[0] != "" and fila[0] != "NOMBRE":
-
-            nombre = fila[0]
+            nombre = fila[1]
 
             if nombre in alumnos_presentes:
                 hoja.update_cell(i, columna_dia, simbolo)
+
             else:
                 hoja.update_cell(i, columna_dia, "/")
 
-        else:
-            break
-
     return render_template("confirmacion.html")
 
-# -----------------------------
+# -------------------------------
 # ESTADÍSTICAS
-# -----------------------------
+# -------------------------------
 
-@app.route("/estadisticas")
-def estadisticas():
+@app.route("/estadisticas/<club>")
+def estadisticas(club):
 
-    datos_estadisticas = []
+    hoja = abrir_hoja(CLUBES[club]["hoja"])
 
-    for club in CLUBES:
+    datos = hoja.get_all_values()
 
-        hoja = abrir_hoja(CLUBES[club]["hoja"])
-        filas = hoja.get_all_values()
+    alumno_mas_faltas = ""
+    max_faltas = 0
 
-        peor_alumno = ""
-        max_faltas = -1
+    for fila in datos[1:]:
 
-        alertas = []
+        if len(fila) > 1:
 
-        for fila in filas[1:]:
+            nombre = fila[1]
 
-            if len(fila) == 0:
-                continue
-
-            nombre = fila[0]
-            celdas = fila[1:]
-
-            faltas = celdas.count("/")
-
-            clases = sum(1 for c in celdas if c != "")
-
-            asistencias = clases - faltas
-
-            porcentaje = 0
-            if clases > 0:
-                porcentaje = int((asistencias / clases) * 100)
+            faltas = fila.count("/")
 
             if faltas > max_faltas:
+
                 max_faltas = faltas
-                peor_alumno = f"{nombre} — {faltas} faltas (de {clases} clases)"
+                alumno_mas_faltas = nombre
 
-            contador = 0
+    return render_template(
+        "estadisticas.html",
+        alumno=alumno_mas_faltas,
+        faltas=max_faltas
+    )
 
-            for c in celdas:
-                if c == "/":
-                    contador += 1
-                    if contador == 3:
-                        alertas.append(f"⚠ {nombre} tiene 3 faltas seguidas")
-                        break
-                else:
-                    contador = 0
-
-        datos_estadisticas.append({
-            "nombre": club.capitalize(),
-            "peor": peor_alumno,
-            "alertas": alertas
-        })
-
-    return render_template("estadisticas.html", estadisticas=datos_estadisticas)
-
-# -----------------------------
-# EJECUTAR APP
-# -----------------------------
+# -------------------------------
+# RUN
+# -------------------------------
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
