@@ -1,19 +1,55 @@
-<h2>Lista de asistencia</h2>
+<!DOCTYPE html>
 
-<form method="POST" action="/guardar">
+<html>
 
-{% for alumno in alumnos %}
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<label>
-<input type="checkbox" name="alumnos" value="{{ alumno }}"> {{ alumno }}
-</label>
+<title>Asistencia Club</title>
 
-<br>
+<style>
 
-{% endfor %}
+body{
+    font-family: Arial;
+    background:#f4f6f8;
+    text-align:center;
+    padding:40px;
+}
 
-<br>
+h2{
+    margin-bottom:40px;
+}
 
-<button type="submit">Guardar asistencia</button>
+.club{
+    display:block;
+    width:220px;
+    margin:15px auto;
+    padding:20px;
+    font-size:22px;
+    border:none;
+    border-radius:15px;
+    background:#2d89ef;
+    color:white;
+    text-decoration:none;
+}
 
-</form>
+.club:hover{
+    background:#1b5fad;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Selecciona club</h2>
+
+<a class="club" href="/asistencia/tenis">🎾 Tenis</a>
+
+<a class="club" href="/asistencia/basquet">🏀 Basquet</a>
+
+</body>
+
+</html>

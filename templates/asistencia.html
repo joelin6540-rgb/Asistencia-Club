@@ -1,4 +1,58 @@
-<h2>Lista de asistencia</h2>
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Asistencia</title>
+
+<style>
+
+body{
+    font-family: Arial;
+    background:#f4f6f8;
+    text-align:center;
+    padding:20px;
+}
+
+h2{
+    margin-bottom:30px;
+}
+
+label{
+    display:block;
+    font-size:20px;
+    margin:10px;
+}
+
+input[type="checkbox"]{
+    transform: scale(1.5);
+    margin-right:10px;
+}
+
+button{
+    margin-top:20px;
+    padding:15px 30px;
+    font-size:18px;
+    border:none;
+    border-radius:10px;
+    background:#2d89ef;
+    color:white;
+}
+
+button:hover{
+    background:#1b5fad;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Lista de asistencias</h2>
 
 <form method="POST" action="/guardar/{{ club }}">
 
@@ -8,12 +62,11 @@
 <input type="checkbox" name="alumnos" value="{{ alumno }}"> {{ alumno }}
 </label>
 
-<br>
-
 {% endfor %}
-
-<br>
 
 <button type="submit">Guardar asistencia</button>
 
 </form>
+
+</body>
+</html>
