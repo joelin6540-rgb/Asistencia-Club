@@ -129,13 +129,35 @@ def guardar(club):
             break
 
     return render_template("confirmacion.html", club=club)
+
 @app.route("/estadisticas")
 def estadisticas():
 
-    datos = [
-        {"nombre":"🥎 Tenis","peor":"Cargando..."},
-        {"nombre":"🏀 Basquet","peor":"Cargando..."}
-    ]
+    datos = []
+
+    for club in CLUBES:
+
+        hoja = abrir_hoja(CLUBES[club]["hoja"])
+
+        filas = hoja.get_all_values()
+
+        peor_alumno = ""
+        max_faltas = -1
+
+        for fila in filas[1:]:  # saltamos encabezados
+
+            nombre = fila[0]
+
+            faltas = fila.count("/")
+
+            if faltas > max_faltas:
+                max_faltas = faltas
+                peor_alumno = nombre
+
+        datos.append({
+            "nombre": club.capitalize(),
+            "peor": f"{peor_alumno} ({max_faltas} faltas)"
+        })
 
     return render_template("estadisticas.html", estadisticas=datos)
 
