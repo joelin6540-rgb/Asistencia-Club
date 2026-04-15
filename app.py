@@ -1,10 +1,30 @@
 from flask import Flask, render_template, request
-from sheets import abrir_hoja
+import gspread
+from google.oauth2.service_account import Credentials
 from datetime import datetime
 import pytz
-from datetime import datetime
 
 app = Flask(__name__)
+
+# -----------------------------
+# CONEXIÓN A GOOGLE SHEETS
+# -----------------------------
+
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
+
+creds = Credentials.from_service_account_file(
+    "credentials.json",
+    scopes=SCOPES
+)
+
+cliente = gspread.authorize(creds)
+
+# -----------------------------
+# CONFIGURACIÓN DE CLUBES
+# -----------------------------
 
 CLUBES = {
     "tenis": {
@@ -12,30 +32,48 @@ CLUBES = {
         "simbolo": "🥎"
     },
     "basquet": {
-        "hoja": "BASQUET BASICO",
+        "hoja": "BASQUET",
         "simbolo": "🏀"
     }
 }
 
+# -----------------------------
+# MESES
+# -----------------------------
+
 MESES = {
-    1:"ENERO",
-    2:"FEBRERO",
-    3:"MARZO",
-    4:"ABRIL",
-    5:"MAYO",
-    6:"JUNIO",
-    7:"JULIO",
-    8:"AGOSTO",
-    9:"SEPTIEMBRE",
-    10:"OCTUBRE",
-    11:"NOVIEMBRE",
-    12:"DICIEMBRE"
+    1: "ENERO",
+    2: "FEBRERO",
+    3: "MARZO",
+    4: "ABRIL",
+    5: "MAYO",
+    6: "JUNIO",
+    7: "JULIO",
+    8: "AGOSTO",
+    9: "SEPTIEMBRE",
+    10: "OCTUBRE",
+    11: "NOVIEMBRE",
+    12: "DICIEMBRE"
 }
+
+# -----------------------------
+# ABRIR HOJA
+# -----------------------------
+
+def abrir_hoja(nombre):
+    return cliente.open("Asistencia Club").worksheet(nombre)
+
+# -----------------------------
+# PÁGINA PRINCIPAL
+# -----------------------------
 
 @app.route("/")
 def inicio():
-    return render_template("index.html")
+    return render_template("clubes.html")
 
+# -----------------------------
+# PÁGINA DE ASISTENCIA
+# -----------------------------
 
 @app.route("/asistencia/<club>")
 def asistencia(club):
@@ -43,33 +81,13 @@ def asistencia(club):
     hoja = abrir_hoja(CLUBES[club]["hoja"])
     datos = hoja.get_all_values()
 
-    mes_actual = MESES[datetime.now().month]
-    buscar_mes = "ASISTENCIA " + mes_actual
-
     alumnos = []
-    leer_tabla = False
-    leer_alumnos = False
 
-    for fila in datos:
+    for fila in datos[1:]:
+        if fila[0] != "":
+            alumnos.append(fila[0])
 
-        if buscar_mes in " ".join(fila):
-            leer_tabla = True
-            continue
-
-        if leer_tabla and len(fila) > 1 and fila[1] == "NOMBRE":
-            leer_alumnos = True
-            continue
-
-        if leer_alumnos:
-
-            if len(fila) > 1 and fila[1] != "":
-                alumnos.append(fila[1])
-            else:
-                break
-
-    from datetime import date
-
-    hoy = date.today().isoformat()
+    hoy = datetime.now().strftime("%Y-%m-%d")
 
     return render_template(
         "asistencia.html",
@@ -78,22 +96,28 @@ def asistencia(club):
         fecha=hoy
     )
 
+# -----------------------------
+# GUARDAR ASISTENCIA
+# -----------------------------
 
 @app.route("/guardar/<club>", methods=["POST"])
 def guardar(club):
+
     fecha = request.form.get("fecha")
 
     if not fecha:
         fecha = datetime.now().strftime("%Y-%m-%d")
+
     hoja = abrir_hoja(CLUBES[club]["hoja"])
     simbolo = CLUBES[club]["simbolo"]
 
     alumnos_presentes = request.form.getlist("alumnos")
 
-    zona = pytz.timezone("America/Mexico_City")
     año, mes, dia = fecha.split("-")
+
     dia = int(dia)
     mes_actual = MESES[int(mes)]
+
     buscar_mes = "ASISTENCIA " + mes_actual
 
     datos = hoja.get_all_values()
@@ -102,51 +126,48 @@ def guardar(club):
     fila_dias = None
     columna_dia = None
 
-    # buscar el bloque del mes
     for i, fila in enumerate(datos):
 
-        if buscar_mes in " ".join(fila):
-            fila_mes = i
+        if buscar_mes in fila:
+            fila_mes = i + 1
+            fila_dias = i + 2
+
+            for j, celda in enumerate(datos[i+1]):
+                if celda == str(dia):
+                    columna_dia = j + 1
+                    break
+
             break
 
-    # buscar la fila donde están los números de los días
-    for i in range(fila_mes, fila_mes + 10):
+    if not columna_dia:
+        return "No se encontró el día en la hoja"
 
-        fila = datos[i]
+    for i in range(fila_dias, len(datos)+1):
 
-        for j, celda in enumerate(fila):
+        fila = datos[i-1]
 
-            if celda == str(hoy):
-                fila_dias = i
-                columna_dia = j + 1
-                break
+        if len(fila) > 0 and fila[0] != "" and fila[0] != "NOMBRE":
 
-        if columna_dia:
-            break
+            nombre = fila[0]
 
-    # escribir asistencia solo en esa tabla
-    for i in range(fila_dias + 1, len(datos)):
-
-        fila = datos[i]
-
-        if len(fila) > 1 and fila[1] != "" and fila[1] != "NOMBRE":
-
-            fila_real = i + 1
-
-            if fila[1] in alumnos_presentes:
-                hoja.update_cell(fila_real, columna_dia, simbolo)
+            if nombre in alumnos_presentes:
+                hoja.update_cell(i, columna_dia, simbolo)
             else:
-                hoja.update_cell(fila_real, columna_dia, "/")
+                hoja.update_cell(i, columna_dia, "/")
 
         else:
             break
 
-    return render_template("confirmacion.html", club=club)
+    return render_template("confirmacion.html")
+
+# -----------------------------
+# ESTADÍSTICAS
+# -----------------------------
 
 @app.route("/estadisticas")
 def estadisticas():
 
-    datos = []
+    datos_estadisticas = []
 
     for club in CLUBES:
 
@@ -158,7 +179,10 @@ def estadisticas():
 
         alertas = []
 
-        for fila in filas[1:]:  # saltar encabezados
+        for fila in filas[1:]:
+
+            if len(fila) == 0:
+                continue
 
             nombre = fila[0]
             celdas = fila[1:]
@@ -173,13 +197,12 @@ def estadisticas():
             if clases > 0:
                 porcentaje = int((asistencias / clases) * 100)
 
-            # alumno con más faltas
             if faltas > max_faltas:
                 max_faltas = faltas
                 peor_alumno = f"{nombre} — {faltas} faltas (de {clases} clases)"
 
-            # detectar 3 faltas seguidas
             contador = 0
+
             for c in celdas:
                 if c == "/":
                     contador += 1
@@ -189,12 +212,17 @@ def estadisticas():
                 else:
                     contador = 0
 
-        datos.append({
+        datos_estadisticas.append({
             "nombre": club.capitalize(),
             "peor": peor_alumno,
             "alertas": alertas
         })
 
-    return render_template("estadisticas.html", estadisticas=datos)
+    return render_template("estadisticas.html", estadisticas=datos_estadisticas)
 
-app.run(host="0.0.0.0", port=5000)
+# -----------------------------
+# EJECUTAR APP
+# -----------------------------
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
