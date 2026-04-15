@@ -5,36 +5,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Asistencia</title>
+<title>Lista de asistencia</title>
 
 <style>
-
 body{
-    font-family: Arial;
+    font-family: Arial, sans-serif;
     background:#f4f6f8;
     text-align:center;
     padding:20px;
 }
 
 h2{
-    margin-bottom:30px;
+    margin-bottom:20px;
 }
 
-label{
+.lista{
+    max-width:500px;
+    margin:auto;
+}
+
+.alumno{
     display:block;
+    margin:12px 0;
+}
+
+/* ocultamos el checkbox */
+.alumno input{
+    display:none;
+}
+
+/* tarjeta */
+.tarjeta{
+    display:block;
+    padding:18px;
+    border-radius:14px;
+    background:white;
+    border:2px solid #ddd;
     font-size:20px;
-    margin:10px;
+    transition:0.2s;
 }
 
-input[type="checkbox"]{
-    transform: scale(1.5);
-    margin-right:10px;
+/* cuando está seleccionado */
+.alumno input:checked + .tarjeta{
+    background:#2d89ef;
+    color:white;
+    border-color:#2d89ef;
 }
 
+/* botón guardar */
 button{
-    margin-top:20px;
-    padding:15px 30px;
+    margin-top:25px;
+    padding:16px 30px;
     font-size:18px;
     border:none;
     border-radius:10px;
@@ -45,24 +66,30 @@ button{
 button:hover{
     background:#1b5fad;
 }
-
 </style>
 
 </head>
 
 <body>
 
-<h2>Lista de asistencias</h2>
+<h2>Lista de asistencia</h2>
 
 <form method="POST" action="/guardar/{{ club }}">
 
+<div class="lista">
+
 {% for alumno in alumnos %}
 
-<label>
-<input type="checkbox" name="alumnos" value="{{ alumno }}"> {{ alumno }}
+<label class="alumno">
+<input type="checkbox" name="alumnos" value="{{ alumno }}">
+<div class="tarjeta">
+{{ alumno }}
+</div>
 </label>
 
 {% endfor %}
+
+</div>
 
 <button type="submit">Guardar asistencia</button>
 
