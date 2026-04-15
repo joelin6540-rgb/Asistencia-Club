@@ -34,7 +34,7 @@ MESES = {
 
 @app.route("/")
 def inicio():
-    return render_template("clubes.html")
+    return render_template("index.html")
 
 
 @app.route("/asistencia/<club>")
