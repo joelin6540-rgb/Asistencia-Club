@@ -9,7 +9,7 @@ app = Flask(__name__)
 CLUBES = {
     "tenis": {
         "hoja": "TENIS",
-        "simbolo": "🎾"
+        "simbolo": "🥎"
     },
     "basquet": {
         "hoja": "BASQUET BASICO",
