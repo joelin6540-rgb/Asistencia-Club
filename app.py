@@ -64,6 +64,37 @@ def abrir_hoja(nombre):
     return cliente.open("LISTAS-CLUBES").worksheet(nombre)
 
 # -------------------------------
+# OBTENER ALUMNOS DINÁMICAMENTE
+# -------------------------------
+
+def obtener_alumnos(hoja):
+
+    columna_nombres = hoja.col_values(2)
+
+    alumnos = []
+
+    fila_inicio = None
+
+    # buscar encabezado NOMBRE
+    for i, valor in enumerate(columna_nombres):
+
+        if valor.strip().upper() == "NOMBRE":
+            fila_inicio = i + 1
+            break
+
+    # leer alumnos
+    if fila_inicio is not None:
+
+        for nombre in columna_nombres[fila_inicio:]:
+
+            if nombre.strip() == "":
+                break
+
+            alumnos.append(nombre)
+
+    return alumnos
+
+# -------------------------------
 # INICIO
 # -------------------------------
 
@@ -80,27 +111,7 @@ def asistencia(club):
 
     hoja = abrir_hoja(CLUBES[club]["hoja"])
 
-    columna_nombres = hoja.col_values(2)
-
-    alumnos = []
-
-    for nombre in columna_nombres:
-
-        nombre = nombre.strip()
-
-        if nombre == "":
-            continue
-
-        if nombre.upper() == "NOMBRE":
-            continue
-
-        if nombre.isdigit():
-            continue
-
-        alumnos.append(nombre)
-
-        if len(alumnos) > 50:
-            break
+    alumnos = obtener_alumnos(hoja)
 
     fecha = datetime.now().strftime("%Y-%m-%d")
 
@@ -134,33 +145,32 @@ def guardar(club):
     año, mes, dia = fecha.split("-")
 
     dia = int(dia)
-    mes_actual = MESES[int(mes)]
-
-    buscar_mes = "ASISTENCIA " + mes_actual
 
     datos = hoja.get_all_values()
 
     columna_dia = None
 
-    for i, valor in enumerate(datos[0]):
-        if valor == str(dia):
-            columna_dia = i + 1
+    for i, valor in enumerate(datos):
+
+        if str(dia) in valor:
+            columna_dia = valor.index(str(dia)) + 1
+            break
 
     if columna_dia is None:
         columna_dia = len(datos[0]) + 1
         hoja.update_cell(1, columna_dia, dia)
 
-    for i, fila in enumerate(datos[1:], start=2):
+    alumnos = obtener_alumnos(hoja)
 
-        if len(fila) > 1:
+    for i, nombre in enumerate(alumnos):
 
-            nombre = fila[1]
+        fila = i + 1
 
-            if nombre in alumnos_presentes:
-                hoja.update_cell(i, columna_dia, simbolo)
+        if nombre in alumnos_presentes:
+            hoja.update_cell(fila + 1, columna_dia, simbolo)
 
-            else:
-                hoja.update_cell(i, columna_dia, "/")
+        else:
+            hoja.update_cell(fila + 1, columna_dia, "/")
 
     return render_template("confirmacion.html")
 
@@ -178,18 +188,22 @@ def estadisticas(club):
     alumno_mas_faltas = ""
     max_faltas = 0
 
-    for fila in datos[1:]:
+    alumnos = obtener_alumnos(hoja)
 
-        if len(fila) > 1:
+    for fila in datos:
+
+        if len(fila) > 2:
 
             nombre = fila[1]
 
-            faltas = fila.count("/")
+            if nombre in alumnos:
 
-            if faltas > max_faltas:
+                faltas = fila.count("/")
 
-                max_faltas = faltas
-                alumno_mas_faltas = nombre
+                if faltas > max_faltas:
+
+                    max_faltas = faltas
+                    alumno_mas_faltas = nombre
 
     return render_template(
         "estadisticas.html",
