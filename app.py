@@ -67,20 +67,31 @@ def asistencia(club):
             else:
                 break
 
-    return render_template("asistencia.html", alumnos=alumnos, club=club)
+    from datetime import date
+
+    hoy = date.today().isoformat()
+
+    return render_template(
+        "asistencia.html",
+        alumnos=alumnos,
+        club=club,
+        fecha=hoy
+    )
 
 
 @app.route("/guardar/<club>", methods=["POST"])
 def guardar(club):
 
+    fecha = request.form.get("fecha")
     hoja = abrir_hoja(CLUBES[club]["hoja"])
     simbolo = CLUBES[club]["simbolo"]
 
     alumnos_presentes = request.form.getlist("alumnos")
 
     zona = pytz.timezone("America/Mexico_City")
-    hoy = datetime.now(zona).day
-    mes_actual = MESES[datetime.now(zona).month]
+    año, mes, dia = fecha.split("-")
+    dia = int(dia)
+    mes_actual = MESES[int(mes)]
     buscar_mes = "ASISTENCIA " + mes_actual
 
     datos = hoja.get_all_values()
