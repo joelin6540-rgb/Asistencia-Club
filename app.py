@@ -128,7 +128,7 @@ def guardar(club):
         else:
             break
 
-    return "Asistencia guardada"
+    return render_template("confirmacion.html", club=club)
 
 
 app.run(host="0.0.0.0", port=5000)
