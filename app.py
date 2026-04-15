@@ -59,12 +59,10 @@ def encontrar_fila_nombres(hoja):
     for i, fila in enumerate(datos):
 
         if len(fila) > 1:
-
             if fila[1].strip().upper() == "NOMBRE":
                 return i + 2
 
     return None
-
 
 # --------------------------------
 # OBTENER ALUMNOS
@@ -90,6 +88,35 @@ def obtener_alumnos(hoja):
 
     return alumnos
 
+# --------------------------------
+# ENCONTRAR COLUMNA DEL DÍA
+# --------------------------------
+
+def encontrar_columna_dia(hoja, dia):
+
+    datos = hoja.get_all_values()
+
+    fila_mes = None
+
+    # Buscar el último bloque "ASISTENCIA"
+    for i, fila in enumerate(datos):
+
+        texto = " ".join(fila).upper()
+
+        if "ASISTENCIA" in texto:
+            fila_mes = i
+
+    if fila_mes is None:
+        return None
+
+    fila_dias = datos[fila_mes + 1]
+
+    for i, valor in enumerate(fila_dias):
+
+        if valor.strip() == str(dia):
+            return i + 1
+
+    return None
 
 # --------------------------------
 # PÁGINA INICIO
@@ -98,7 +125,6 @@ def obtener_alumnos(hoja):
 @app.route("/")
 def inicio():
     return render_template("clubes.html")
-
 
 # --------------------------------
 # LISTA ASISTENCIA
@@ -120,7 +146,6 @@ def asistencia(club):
         fecha=fecha
     )
 
-
 # --------------------------------
 # GUARDAR ASISTENCIA
 # --------------------------------
@@ -140,8 +165,10 @@ def guardar(club):
 
     simbolo = CLUBES[club]["simbolo"]
 
-    # COLUMNA DEL DÍA (D = día 1)
-    columna_dia = dia + 3
+    columna_dia = encontrar_columna_dia(hoja, dia)
+
+    if columna_dia is None:
+        return "No se encontró el día en la hoja."
 
     alumnos_presentes = request.form.getlist("alumnos")
 
@@ -157,15 +184,11 @@ def guardar(club):
         fila = fila_inicio + i
 
         if nombre in alumnos_presentes:
-
             hoja.update_cell(fila, columna_dia, simbolo)
-
         else:
-
             hoja.update_cell(fila, columna_dia, "/")
 
     return render_template("confirmacion.html")
-
 
 # --------------------------------
 # ESTADÍSTICAS
@@ -201,7 +224,6 @@ def estadisticas(club):
         alumno=alumno_peor,
         faltas=faltas_max
     )
-
 
 # --------------------------------
 # RUN
