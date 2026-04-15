@@ -2,7 +2,6 @@ from flask import Flask, render_template, request
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
-import pytz
 
 app = Flask(__name__)
 
@@ -15,8 +14,13 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-creds = Credentials.from_service_account_file(
-    "credentials.json",
+import json
+import os
+
+credenciales = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+
+creds = Credentials.from_service_account_info(
+    credenciales,
     scopes=SCOPES
 )
 
