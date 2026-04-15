@@ -95,42 +95,30 @@ def obtener_alumnos(hoja):
 # ENCONTRAR MES Y DÍA CORRECTO
 # --------------------------------
 
-def encontrar_columna_dia(hoja, dia):
+    def encontrar_columna_dia(hoja, dia):
 
-    datos = hoja.get_all_values()
+        datos = hoja.get_all_values()
 
-    zona = pytz.timezone("America/Mexico_City")
-    ahora = datetime.now(zona)
+        fila_mes = None
 
-    MESES = {
-        1:"ENERO",
-        2:"FEBRERO",
-        3:"MARZO",
-        4:"ABRIL",
-        5:"MAYO",
-        6:"JUNIO",
-        7:"JULIO",
-        8:"AGOSTO",
-        9:"SEPTIEMBRE",
-        10:"OCTUBRE",
-        11:"NOVIEMBRE",
-        12:"DICIEMBRE"
-    }
+        # buscar el ÚLTIMO bloque de asistencia del archivo
+        for i, fila in enumerate(datos):
 
-    mes_actual = MESES[ahora.month]
+            texto = " ".join(fila).upper()
 
-    titulo_mes = f"ASISTENCIA {mes_actual}"
+            if "ASISTENCIA" in texto:
+                fila_mes = i
 
-    filas_mes = []
+        if fila_mes is None:
+            return None
 
-    for i, fila in enumerate(datos):
+        fila_dias = datos[fila_mes + 1]
 
-        texto = " ".join(fila).upper()
+        for i, valor in enumerate(fila_dias):
 
-        if titulo_mes in texto:
-            filas_mes.append(i)
+            if valor.strip() == str(dia):
+                return i + 1
 
-    if not filas_mes:
         return None
 
     # usar la última coincidencia
