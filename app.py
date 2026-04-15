@@ -11,7 +11,6 @@ app = Flask(__name__)
 # -------------------------------
 # CONEXIÓN A GOOGLE SHEETS
 # -------------------------------
-
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
@@ -29,75 +28,94 @@ cliente = gspread.authorize(creds)
 # -------------------------------
 # CONFIGURACIÓN
 # -------------------------------
-
 CLUBES = {
     "tenis": {
         "hoja": "TENIS",
         "simbolo": "🥎"
     },
     "basquet": {
-        "hoja": "BASQUET BASICO",
+        "hoja": "BASQUET BASICO",  # cambia a "BÁSQUET BASICO" si tu pestaña tiene acento
         "simbolo": "🏀"
     }
-}
-
-MESES = {
-    1: "ENERO",
-    2: "FEBRERO",
-    3: "MARZO",
-    4: "ABRIL",
-    5: "MAYO",
-    6: "JUNIO",
-    7: "JULIO",
-    8: "AGOSTO",
-    9: "SEPTIEMBRE",
-    10: "OCTUBRE",
-    11: "NOVIEMBRE",
-    12: "DICIEMBRE"
 }
 
 # -------------------------------
 # ABRIR HOJA
 # -------------------------------
-
 def abrir_hoja(nombre):
     return cliente.open("LISTAS-CLUBES").worksheet(nombre)
 
 # -------------------------------
-# OBTENER ALUMNOS DINÁMICAMENTE
+# OBTENER ALUMNOS (dinámico)
+# Busca la fila donde está "NOMBRE"
+# y lee hacia abajo hasta la primera celda vacía
 # -------------------------------
-
 def obtener_alumnos(hoja):
-
-    columna_nombres = hoja.col_values(2)
-
+    col_b = hoja.col_values(2)  # columna B (NOMBRE)
     alumnos = []
 
     fila_inicio = None
-
-    # buscar encabezado NOMBRE
-    for i, valor in enumerate(columna_nombres):
-
-        if valor.strip().upper() == "NOMBRE":
-            fila_inicio = i + 1
+    for i, v in enumerate(col_b):
+        if v.strip().upper() == "NOMBRE":
+            fila_inicio = i + 1  # siguiente fila = primer alumno
             break
 
-    # leer alumnos
-    if fila_inicio is not None:
+    if fila_inicio is None:
+        return alumnos
 
-        for nombre in columna_nombres[fila_inicio:]:
-
-            if nombre.strip() == "":
-                break
-
-            alumnos.append(nombre)
+    for nombre in col_b[fila_inicio:]:
+        if nombre.strip() == "":
+            break
+        alumnos.append(nombre.strip())
 
     return alumnos
 
 # -------------------------------
+# ENCONTRAR BLOQUE DEL MES Y DÍA
+# Busca "ASISTENCIA <MES> <AÑO>" y luego el día en la fila de números
+# -------------------------------
+def encontrar_columna_dia(hoja, dia):
+    datos = hoja.get_all_values()
+
+    zona = pytz.timezone("America/Mexico_City")
+    ahora = datetime.now(zona)
+
+    mes_nombre = ahora.strftime("%B").upper()   # APRIL / MAY ...
+    anio = ahora.year
+
+    # Convertimos a español si quieres, pero tus hojas parecen usar español en el título.
+    # Si tus títulos están en español (ABRIL, MAYO...), usa este mapa:
+    meses_es = {
+        "JANUARY": "ENERO", "FEBRUARY": "FEBRERO", "MARCH": "MARZO", "APRIL": "ABRIL",
+        "MAY": "MAYO", "JUNE": "JUNIO", "JULY": "JULIO", "AUGUST": "AGOSTO",
+        "SEPTEMBER": "SEPTIEMBRE", "OCTOBER": "OCTUBRE", "NOVEMBER": "NOVIEMBRE", "DECEMBER": "DICIEMBRE"
+    }
+
+    mes_es = meses_es.get(mes_nombre, mes_nombre)
+
+    titulo_mes = f"ASISTENCIA {mes_es} {anio}"
+
+    fila_mes = None
+    for i, fila in enumerate(datos):
+        if titulo_mes in " ".join(fila).upper():
+            fila_mes = i
+            break
+
+    if fila_mes is None:
+        return None
+
+    # La fila de números de días suele estar justo debajo del título
+    fila_dias = datos[fila_mes + 1]
+
+    for i, v in enumerate(fila_dias):
+        if v.strip() == str(dia):
+            return i + 1  # columnas de gspread empiezan en 1
+
+    return None
+
+# -------------------------------
 # INICIO
 # -------------------------------
-
 @app.route("/")
 def inicio():
     return render_template("clubes.html")
@@ -105,12 +123,9 @@ def inicio():
 # -------------------------------
 # LISTA DE ASISTENCIA
 # -------------------------------
-
 @app.route("/asistencia/<club>")
 def asistencia(club):
-
     hoja = abrir_hoja(CLUBES[club]["hoja"])
-
     alumnos = obtener_alumnos(hoja)
 
     fecha = datetime.now().strftime("%Y-%m-%d")
@@ -125,64 +140,56 @@ def asistencia(club):
 # -------------------------------
 # GUARDAR ASISTENCIA
 # -------------------------------
-
 @app.route("/guardar/<club>", methods=["POST"])
 def guardar(club):
 
     fecha = request.form.get("fecha")
-
     if not fecha:
         fecha = datetime.now().strftime("%Y-%m-%d")
 
-    hoja = abrir_hoja(CLUBES[club]["hoja"])
-
-    simbolo = CLUBES[club]["simbolo"]
-
-    alumnos_presentes = request.form.getlist("alumnos")
-
-    zona = pytz.timezone("America/Mexico_City")
-
-    año, mes, dia = fecha.split("-")
-
+    _, _, dia = fecha.split("-")
     dia = int(dia)
 
-    datos = hoja.get_all_values()
+    hoja = abrir_hoja(CLUBES[club]["hoja"])
+    simbolo = CLUBES[club]["simbolo"]
 
-    columna_dia = None
+    columna_dia = encontrar_columna_dia(hoja, dia)
 
-    for i, valor in enumerate(datos):
-
-        if str(dia) in valor:
-            columna_dia = valor.index(str(dia)) + 1
-            break
-
+    # Si no encuentra el día, no escribe nada (para no romper la hoja)
     if columna_dia is None:
-        columna_dia = len(datos[0]) + 1
-        hoja.update_cell(1, columna_dia, dia)
+        return "No se encontró la columna del día en el mes actual."
 
+    alumnos_presentes = request.form.getlist("alumnos")
     alumnos = obtener_alumnos(hoja)
 
-    for i, nombre in enumerate(alumnos):
+    col_b = hoja.col_values(2)
 
-        fila = i + 1
+    # Encontrar de nuevo la fila de "NOMBRE"
+    fila_inicio = None
+    for i, v in enumerate(col_b):
+        if v.strip().upper() == "NOMBRE":
+            fila_inicio = i + 2  # primera fila de alumnos en hoja (1-index)
+            break
+
+    if fila_inicio is None:
+        return "No se encontró el encabezado NOMBRE."
+
+    for i, nombre in enumerate(alumnos):
+        fila = fila_inicio + i
 
         if nombre in alumnos_presentes:
-            hoja.update_cell(fila + 1, columna_dia, simbolo)
-
+            hoja.update_cell(fila, columna_dia, simbolo)
         else:
-            hoja.update_cell(fila + 1, columna_dia, "/")
+            hoja.update_cell(fila, columna_dia, "/")
 
     return render_template("confirmacion.html")
 
 # -------------------------------
-# ESTADÍSTICAS
+# ESTADÍSTICAS (básico)
 # -------------------------------
-
 @app.route("/estadisticas/<club>")
 def estadisticas(club):
-
     hoja = abrir_hoja(CLUBES[club]["hoja"])
-
     datos = hoja.get_all_values()
 
     alumno_mas_faltas = ""
@@ -191,17 +198,11 @@ def estadisticas(club):
     alumnos = obtener_alumnos(hoja)
 
     for fila in datos:
-
         if len(fila) > 2:
-
             nombre = fila[1]
-
             if nombre in alumnos:
-
                 faltas = fila.count("/")
-
                 if faltas > max_faltas:
-
                     max_faltas = faltas
                     alumno_mas_faltas = nombre
 
@@ -214,6 +215,5 @@ def estadisticas(club):
 # -------------------------------
 # RUN
 # -------------------------------
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
