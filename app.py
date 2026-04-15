@@ -92,49 +92,6 @@ def obtener_alumnos(hoja):
 
 
 # --------------------------------
-# ENCONTRAR MES Y DÍA CORRECTO
-# --------------------------------
-
-    def encontrar_columna_dia(hoja, dia):
-
-        datos = hoja.get_all_values()
-
-        fila_mes = None
-
-        # buscar el ÚLTIMO bloque de asistencia del archivo
-        for i, fila in enumerate(datos):
-
-            texto = " ".join(fila).upper()
-
-            if "ASISTENCIA" in texto:
-                fila_mes = i
-
-        if fila_mes is None:
-            return None
-
-        fila_dias = datos[fila_mes + 1]
-
-        for i, valor in enumerate(fila_dias):
-
-            if valor.strip() == str(dia):
-                return i + 1
-
-        return None
-
-    # usar la última coincidencia
-    fila_mes = filas_mes[-1]
-
-    fila_dias = datos[fila_mes + 1]
-
-    for i, v in enumerate(fila_dias):
-
-        if v.strip() == str(dia):
-            return i + 1
-
-    return None
-
-
-# --------------------------------
 # PÁGINA INICIO
 # --------------------------------
 
@@ -183,10 +140,8 @@ def guardar(club):
 
     simbolo = CLUBES[club]["simbolo"]
 
-    columna_dia = encontrar_columna_dia(hoja, dia)
-
-    if columna_dia is None:
-        return "No se encontró el día en la hoja."
+    # COLUMNA DEL DÍA (D = día 1)
+    columna_dia = dia + 3
 
     alumnos_presentes = request.form.getlist("alumnos")
 
