@@ -65,7 +65,7 @@ MESES = {
 # -----------------------------
 
 def abrir_hoja(nombre):
-    return cliente.open("Asistencia Club").worksheet(nombre)
+    return cliente.open("LISTAS-CLUBES").worksheet(nombre)
 
 # -----------------------------
 # PÁGINA PRINCIPAL
