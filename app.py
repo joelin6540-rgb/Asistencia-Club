@@ -129,6 +129,14 @@ def guardar(club):
             break
 
     return render_template("confirmacion.html", club=club)
+@app.route("/estadisticas")
+def estadisticas():
 
+    datos = [
+        {"nombre":"🥎 Tenis","peor":"Cargando..."},
+        {"nombre":"🏀 Basquet","peor":"Cargando..."}
+    ]
+
+    return render_template("estadisticas.html", estadisticas=datos)
 
 app.run(host="0.0.0.0", port=5000)
