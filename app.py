@@ -36,7 +36,7 @@ CLUBES = {
         "simbolo": "🥎"
     },
     "basquet": {
-        "hoja": "BASQUET",
+        "hoja": "BASQUET BASICO",
         "simbolo": "🏀"
     }
 }
