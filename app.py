@@ -80,13 +80,13 @@ def asistencia(club):
 
     hoja = abrir_hoja(CLUBES[club]["hoja"])
 
-    datos = hoja.get_all_values()
+    columna_nombres = hoja.col_values(2)
 
     alumnos = []
 
-    for fila in datos[1:]:
-        if len(fila) > 1 and fila[1] != "":
-            alumnos.append(fila[1])
+    for nombre in columna_nombres[1:]:
+        if nombre.strip() != "":
+            alumnos.append(nombre)
 
     fecha = datetime.now().strftime("%Y-%m-%d")
 
