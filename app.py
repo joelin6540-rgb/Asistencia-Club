@@ -74,34 +74,50 @@ def obtener_alumnos(hoja):
 # ENCONTRAR BLOQUE DEL MES Y DÍA
 # Busca "ASISTENCIA <MES> <AÑO>" y luego el día en la fila de números
 # -------------------------------
-def encontrar_columna_dia(hoja, dia):
-    datos = hoja.get_all_values()
+    def encontrar_columna_dia(hoja, dia):
 
-    zona = pytz.timezone("America/Mexico_City")
-    ahora = datetime.now(zona)
+        datos = hoja.get_all_values()
 
-    mes_nombre = ahora.strftime("%B").upper()   # APRIL / MAY ...
-    anio = ahora.year
+        zona = pytz.timezone("America/Mexico_City")
+        ahora = datetime.now(zona)
 
-    # Convertimos a español si quieres, pero tus hojas parecen usar español en el título.
-    # Si tus títulos están en español (ABRIL, MAYO...), usa este mapa:
-    meses_es = {
-        "JANUARY": "ENERO", "FEBRUARY": "FEBRERO", "MARCH": "MARZO", "APRIL": "ABRIL",
-        "MAY": "MAYO", "JUNE": "JUNIO", "JULY": "JULIO", "AUGUST": "AGOSTO",
-        "SEPTEMBER": "SEPTIEMBRE", "OCTOBER": "OCTUBRE", "NOVEMBER": "NOVIEMBRE", "DECEMBER": "DICIEMBRE"
-    }
+        MESES = {
+            1: "ENERO",
+            2: "FEBRERO",
+            3: "MARZO",
+            4: "ABRIL",
+            5: "MAYO",
+            6: "JUNIO",
+            7: "JULIO",
+            8: "AGOSTO",
+            9: "SEPTIEMBRE",
+            10: "OCTUBRE",
+            11: "NOVIEMBRE",
+            12: "DICIEMBRE"
+        }
 
-    mes_es = meses_es.get(mes_nombre, mes_nombre)
+        mes_actual = MESES[ahora.month]
+        anio_actual = ahora.year
 
-    titulo_mes = f"ASISTENCIA {mes_es} {anio}"
+        titulo_mes = f"ASISTENCIA {mes_actual} {anio_actual}"
 
-    fila_mes = None
-    for i, fila in enumerate(datos):
-        if titulo_mes in " ".join(fila).upper():
-            fila_mes = i
-            break
+        fila_mes = None
 
-    if fila_mes is None:
+        for i, fila in enumerate(datos):
+            texto = " ".join(fila).upper()
+            if titulo_mes in texto:
+                fila_mes = i
+                break
+
+        if fila_mes is None:
+            return None
+
+        fila_dias = datos[fila_mes + 1]
+
+        for i, v in enumerate(fila_dias):
+            if v.strip() == str(dia):
+                return i + 1
+
         return None
 
     # La fila de números de días suele estar justo debajo del título
