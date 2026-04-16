@@ -92,22 +92,73 @@ def obtener_alumnos(hoja):
 # ENCONTRAR COLUMNA DEL DÍA
 # --------------------------------
 
-def encontrar_columna_dia(hoja, dia):
+    def guardar_asistencia(hoja, nombre, dia, valor):
 
-    datos = hoja.get_all_values()
+        datos = hoja.get_all_values()
 
-    fila_mes = None
+        zona = pytz.timezone("America/Mexico_City")
+        ahora = datetime.now(zona)
 
-    # Buscar el último bloque "ASISTENCIA"
-    for i, fila in enumerate(datos):
+        MESES = {
+            1: "ENERO",
+            2: "FEBRERO",
+            3: "MARZO",
+            4: "ABRIL",
+            5: "MAYO",
+            6: "JUNIO",
+            7: "JULIO",
+            8: "AGOSTO",
+            9: "SEPTIEMBRE",
+            10: "OCTUBRE",
+            11: "NOVIEMBRE",
+            12: "DICIEMBRE"
+        }
 
-        texto = " ".join(fila).upper()
+        mes_actual = MESES[ahora.month]
 
-        if "ASISTENCIA" in texto:
-            fila_mes = i
+        fila_mes = None
 
-    if fila_mes is None:
-        return None
+        # encontrar bloque del mes
+        for i, fila in enumerate(datos):
+
+            texto = " ".join(fila).upper()
+
+            if "ASISTENCIA" in texto and mes_actual in texto:
+                fila_mes = i
+                break
+
+        if fila_mes is None:
+            return False
+
+        # fila de días
+        fila_dias = datos[fila_mes + 1]
+
+        columna_dia = None
+
+        for i, valor_celda in enumerate(fila_dias):
+
+            if valor_celda.strip() == str(dia):
+                columna_dia = i + 1
+                break
+
+        if columna_dia is None:
+            return False
+
+        # buscar alumno
+        fila_alumno = None
+
+        for i in range(fila_mes + 2, len(datos)):
+
+            if datos[i] and datos[i][0].strip().upper() == nombre.strip().upper():
+                fila_alumno = i + 1
+                break
+
+        if fila_alumno is None:
+            return False
+
+        hoja.update_cell(fila_alumno, columna_dia, valor)
+
+        return True
 
     fila_dias = datos[fila_mes + 1]
 
