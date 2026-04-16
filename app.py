@@ -3,26 +3,34 @@ import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 import pytz
+import json
+import os
 
 app = Flask(__name__)
 
-# ----------------------------
-# CONEXIÓN A GOOGLE SHEETS
-# ----------------------------
+# ----------------------------------
+# CONEXIÓN A GOOGLE SHEETS (RENDER)
+# ----------------------------------
 
 scope = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ]
 
-creds = Credentials.from_service_account_file("credenciales.json", scopes=scope)
+credenciales = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+
+creds = Credentials.from_service_account_info(
+    credenciales,
+    scopes=scope
+)
+
 cliente = gspread.authorize(creds)
 
 libro = cliente.open("LISTAS-CLUBES")
 
-# ----------------------------
+# ----------------------------------
 # MESES
-# ----------------------------
+# ----------------------------------
 
 MESES = {
     1: "ENERO",
@@ -39,9 +47,9 @@ MESES = {
     12: "DICIEMBRE"
 }
 
-# ----------------------------
+# ----------------------------------
 # ENCONTRAR COLUMNA DEL DÍA
-# ----------------------------
+# ----------------------------------
 
 def encontrar_columna_dia(hoja, dia):
 
@@ -54,7 +62,6 @@ def encontrar_columna_dia(hoja, dia):
 
     fila_mes = None
 
-    # buscar bloque del mes
     for i, fila in enumerate(datos):
 
         texto = " ".join(fila).upper()
@@ -75,9 +82,9 @@ def encontrar_columna_dia(hoja, dia):
 
     return None
 
-# ----------------------------
+# ----------------------------------
 # ENCONTRAR FILA DEL ALUMNO
-# ----------------------------
+# ----------------------------------
 
 def encontrar_fila_alumno(hoja, nombre):
 
@@ -90,25 +97,25 @@ def encontrar_fila_alumno(hoja, nombre):
 
     return None
 
-# ----------------------------
+# ----------------------------------
 # PÁGINA PRINCIPAL
-# ----------------------------
+# ----------------------------------
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
-# ----------------------------
-# LISTA DE CLUBES
-# ----------------------------
+# ----------------------------------
+# CLUBES
+# ----------------------------------
 
 @app.route("/clubes")
 def clubes():
     return render_template("clubes.html")
 
-# ----------------------------
+# ----------------------------------
 # ASISTENCIA TENIS
-# ----------------------------
+# ----------------------------------
 
 @app.route("/asistencia/tenis")
 def asistencia_tenis():
@@ -122,11 +129,15 @@ def asistencia_tenis():
         if fila and fila[0] != "":
             alumnos.append(fila[0])
 
-    return render_template("asistencia.html", alumnos=alumnos, club="tenis")
+    return render_template(
+        "asistencia.html",
+        alumnos=alumnos,
+        club="tenis"
+    )
 
-# ----------------------------
+# ----------------------------------
 # GUARDAR ASISTENCIA
-# ----------------------------
+# ----------------------------------
 
 @app.route("/guardar/<club>", methods=["POST"])
 def guardar(club):
@@ -147,19 +158,23 @@ def guardar(club):
 
     if columna_dia and fila_alumno:
 
-        hoja.update_cell(fila_alumno, columna_dia, estado)
+        hoja.update_cell(
+            fila_alumno,
+            columna_dia,
+            estado
+        )
 
     return redirect(f"/asistencia/{club}")
 
-# ----------------------------
+# ----------------------------------
 # CONFIRMACIÓN
-# ----------------------------
+# ----------------------------------
 
 @app.route("/confirmacion")
 def confirmacion():
     return render_template("confirmacion.html")
 
-# ----------------------------
+# ----------------------------------
 
 if __name__ == "__main__":
     app.run(debug=True)
