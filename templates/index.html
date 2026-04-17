@@ -6,52 +6,69 @@
 <title>Asistencia Club</title>
 
 <style>
-body{
-    font-family: Arial, sans-serif;
-    text-align:center;
-    padding-top:80px;
-    margin:0;
 
-    /* FONDO */
-    background-image:url("{{ url_for('static', filename='fondo_inicio.png') }}");
-    background-size:260px;
-    background-repeat:repeat;
-    background-attachment:fixed;
+body{
+font-family: Arial, sans-serif;
+margin:0;
+height:100vh;
+
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+
+background-image:url("{{ url_for('static', filename='fondo_inicio.png') }}");
+background-size:260px;
+background-repeat:repeat;
 }
 
-/* Botones */
+.card{
+background:rgba(255,255,255,0.95);
+padding:40px;
+border-radius:15px;
+box-shadow:0 10px 25px rgba(0,0,0,0.2);
+text-align:center;
+}
+
+h1{
+margin-bottom:30px;
+}
+
 .btn{
-    display:block;
-    width:260px;
-    margin:20px auto;
-    padding:18px;
-    font-size:20px;
-    border-radius:12px;
-    text-decoration:none;
-    color:white;
-    font-weight:bold;
+display:block;
+width:260px;
+margin:15px auto;
+padding:16px;
+font-size:18px;
+border-radius:10px;
+text-decoration:none;
+color:white;
+font-weight:bold;
 }
 
 .tenis{
-    background:#4CAF50;
+background:#4CAF50;
 }
 
 .basquet{
-    background:#F57C00;
+background:#F57C00;
 }
 
 .est{
-    background:#2d7be5;
+background:#2d7be5;
 }
 
 .btn:hover{
-    opacity:0.9;
+opacity:0.9;
 }
+
 </style>
 
 </head>
 
 <body>
+
+<div class="card">
 
 <h1>Selecciona club</h1>
 
@@ -59,11 +76,13 @@ body{
 
 <a class="btn basquet" href="/asistencia/basquet">🏀 Basquet</a>
 
-<br><br>
+<br>
 
 <a class="btn est" href="/estadisticas/tenis">📊 Estadísticas Tenis</a>
 
 <a class="btn est" href="/estadisticas/basquet">📊 Estadísticas Básquet</a>
+
+</div>
 
 </body>
 </html>

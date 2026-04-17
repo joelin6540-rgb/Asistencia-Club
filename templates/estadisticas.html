@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 
 <html lang="es">
-
 <head>
-
 <meta charset="UTF-8">
 <title>Estadísticas</title>
 
@@ -11,29 +9,31 @@
 
 body{
 font-family: Arial, sans-serif;
-text-align:center;
-padding:40px;
 margin:0;
+height:100vh;
 
-/* fondo */
-background-image:url("/static/estadisticas.png");
-background-size:300px;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+
+background-image:url("{{ url_for('static', filename='estadisticas.png') }}");
+background-size:260px;
 background-repeat:repeat;
-background-attachment:fixed;
 }
 
 .card{
-background:white;
-padding:30px;
-border-radius:10px;
-width:400px;
-margin:auto;
-box-shadow:0 4px 10px rgba(0,0,0,0.15);
+background:rgba(255,255,255,0.95);
+padding:40px;
+border-radius:15px;
+box-shadow:0 10px 25px rgba(0,0,0,0.2);
+text-align:center;
+width:320px;
 }
 
 .btn{
 display:inline-block;
-margin-bottom:25px;
+margin-bottom:20px;
 padding:10px 20px;
 background:#2d7be5;
 color:white;
@@ -42,26 +42,18 @@ border-radius:8px;
 font-weight:bold;
 }
 
-.btn:hover{
-background:#1f5fb8;
-}
-
 ul{
 list-style:none;
 padding:0;
 }
 
 li{
-margin:6px 0;
+margin:5px 0;
 }
 
 .alerta{
 color:red;
 font-weight:bold;
-}
-
-hr{
-margin:25px 0;
 }
 
 </style>
@@ -70,9 +62,7 @@ margin:25px 0;
 
 <body>
 
-<h1>📊 Estadísticas</h1>
-
-<a href="/" class="btn">← Volver</a>
+<a class="btn" href="/">← Volver</a>
 
 <div class="card">
 
@@ -108,12 +98,11 @@ margin:25px 0;
 
 <ul>
 {% for alumno in alertas %}
-<li class="alerta">⚠️ {{ alumno }} tiene 3 o más faltas</li>
+<li class="alerta">⚠️ {{ alumno }}</li>
 {% endfor %}
 </ul>
 
 </div>
 
 </body>
-
 </html>
