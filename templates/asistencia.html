@@ -1,79 +1,67 @@
 <!DOCTYPE html>
 
-<html>
-
+<html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lista de asistencia</title>
 
 <style>
+
 body{
 font-family: Arial, sans-serif;
-text-align:center;
+margin:0;
 padding:40px;
 
-background-image: url("/static/fondo_{{ club }}.png");
-background-size: 250px;
-background-repeat: repeat;
+display:flex;
+flex-direction:column;
+align-items:center;
+
+background-image:url("{{ url_for('static', filename='fondo_{{club}}.png') }}");
+background-size:260px;
+background-repeat:repeat;
+}
+
+.card{
+width:90%;
+max-width:500px;
+padding:30px;
+border-radius:15px;
+background:rgba(255,255,255,0.95);
+box-shadow:0 10px 25px rgba(0,0,0,0.2);
+text-align:left;
 }
 
 h2{
-    margin-bottom:20px;
+text-align:center;
 }
 
-.lista{
-    max-width:500px;
-    margin:auto;
+.btn{
+display:block;
+width:90%;
+max-width:350px;
+margin:20px auto;
+padding:18px;
+font-size:18px;
+border-radius:10px;
+border:none;
+background:#2d7be5;
+color:white;
+font-weight:bold;
+cursor:pointer;
 }
 
 .alumno{
-    display:block;
-    margin:12px 0;
+margin:8px 0;
+font-size:18px;
 }
 
-/* ocultamos el checkbox */
-.alumno input{
-    display:none;
-}
-
-/* tarjeta */
-.tarjeta{
-    display:block;
-    padding:18px;
-    border-radius:14px;
-    background:white;
-    border:2px solid #ddd;
-    font-size:20px;
-    transition:0.2s;
-}
-
-/* cuando está seleccionado */
-.alumno input:checked + .tarjeta{
-    background:#2d89ef;
-    color:white;
-    border-color:#2d89ef;
-}
-
-/* botón guardar */
-button{
-    margin-top:25px;
-    padding:16px 30px;
-    font-size:18px;
-    border:none;
-    border-radius:10px;
-    background:#2d89ef;
-    color:white;
-}
-
-button:hover{
-    background:#1b5fad;
-}
 </style>
 
 </head>
 
 <body>
+
+<div class="card">
 
 <h2>Lista de asistencia</h2>
 
@@ -81,7 +69,7 @@ button:hover{
 
 <form method="POST" action="/guardar/{{ club }}">
 
-    <div style="margin-bottom:20px; font-size:20px;">
+<div style="margin-bottom:20px; font-size:20px;">
 Fecha de la clase:<br>
 <input type="date" name="fecha" value="{{fecha}}" style="font-size:18px; padding:8px;">
 </div>
@@ -90,21 +78,27 @@ Fecha de la clase:<br>
 
 {% for alumno in alumnos %}
 
-<label class="alumno">
+<div class="alumno">
+
+<label>
+
 <input type="checkbox" name="alumnos_presentes" value="{{ alumno }}">
-<div class="tarjeta">
+
 {{ alumno }}
-</div>
+
 </label>
+
+</div>
 
 {% endfor %}
 
-
 </div>
 
-<button type="submit">Guardar asistencia</button>
+<button class="btn" type="submit">Guardar asistencia</button>
 
 </form>
+
+</div>
 
 </body>
 </html>
