@@ -217,6 +217,40 @@ def asistencia_basquet():
     )
 
 # --------------------------------
+# Estadisticas
+# --------------------------------
+
+@app.route("/estadisticas/<club>")
+def estadisticas(club):
+
+    if club == "tenis":
+        hoja = libro.worksheet("TENIS")
+    elif club == "basquet":
+        hoja = libro.worksheet("BASQUET BASICO")
+
+    datos = hoja.get_all_values()
+
+    total_alumnos = len(datos) - 1
+
+    asistencias = 0
+    faltas = 0
+
+    for fila in datos[1:]:
+        for celda in fila[1:]:
+            if celda in ["🎾", "🏀", "✓"]:
+                asistencias += 1
+            elif celda == "❌":
+                faltas += 1
+
+    return render_template(
+        "estadisticas.html",
+        club=club,
+        total_alumnos=total_alumnos,
+        asistencias=asistencias,
+        faltas=faltas
+    )
+
+# --------------------------------
 # GUARDAR ASISTENCIA
 # --------------------------------
 
