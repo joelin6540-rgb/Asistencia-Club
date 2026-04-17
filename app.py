@@ -240,10 +240,9 @@ def guardar(club):
 
     alumnos_presentes = request.form.getlist("alumnos_presentes")
 
-    zona = pytz.timezone("America/Mexico_City")
-    ahora = datetime.now(zona)
-
-    dia = ahora.day
+    fecha = request.form.get("fecha")
+    fecha_obj = datetime.strptime(fecha, "%Y-%m-%d")
+    dia = fecha_obj.day
 
     columna_dia = encontrar_columna_dia(hoja, dia)
 
