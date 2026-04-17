@@ -233,7 +233,10 @@ def guardar(club):
     fecha = datetime.strptime(fecha_str, "%Y-%m-%d")
     dia = fecha.day
     mes = fecha.month
-    hoja = libro.worksheet(club.upper())
+    if club == "tenis":
+        hoja = libro.worksheet("TENIS")
+    elif club == "basquet":
+        hoja = libro.worksheet("BASQUET BASICO")
 
     alumnos_presentes = request.form.getlist("alumnos_presentes")
 
