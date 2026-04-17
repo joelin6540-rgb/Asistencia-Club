@@ -193,7 +193,7 @@ def asistencia_tenis():
 # --------------------------------
 
 @app.route("/asistencia/basquet")
-def asistencia_tenis():
+def asistencia_basquet():
 
     hoja = obtener_hoja("BASQUET BASICO")
     alumnos = obtener_alumnos_mes(hoja)
