@@ -239,7 +239,7 @@ def guardar(club):
                 hoja.update_cell(fila, columna_dia, "❌")
 
 
-return render_template("confirmacion.html", club=club)
+    return render_template("confirmacion.html", club=club)
 
 
 # --------------------------------
