@@ -86,13 +86,14 @@ Fecha de la clase:<br>
 {% for alumno in alumnos %}
 
 <label class="alumno">
-<input type="checkbox" name="alumnos" value="{{ alumno }}">
+<input type="checkbox" name="alumnos_presentes" value="{{ alumno }}">
 <div class="tarjeta">
 {{ alumno }}
 </div>
 </label>
 
 {% endfor %}
+
 
 </div>
 

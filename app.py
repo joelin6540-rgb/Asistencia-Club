@@ -198,8 +198,7 @@ def guardar(club):
 
     hoja = libro.worksheet(club.upper())
 
-    nombre = request.form["nombre"]
-    estado = request.form["estado"]
+    alumnos_presentes = request.form.getlist("alumnos_presentes")
 
     zona = pytz.timezone("America/Mexico_City")
     ahora = datetime.now(zona)
@@ -208,15 +207,18 @@ def guardar(club):
 
     columna_dia = encontrar_columna_dia(hoja, dia)
 
-    fila_alumno = encontrar_fila_alumno(hoja, nombre)
+    alumnos = obtener_alumnos_mes(hoja)
 
-    if columna_dia and fila_alumno:
+    for alumno in alumnos:
 
-        hoja.update_cell(
-            fila_alumno,
-            columna_dia,
-            estado
-        )
+        fila = encontrar_fila_alumno(hoja, alumno)
+
+        if fila and columna_dia:
+
+            if alumno in alumnos_presentes:
+                hoja.update_cell(fila, columna_dia, "✔")
+            else:
+                hoja.update_cell(fila, columna_dia, "/")
 
     return redirect(f"/asistencia/{club}")
 
