@@ -29,23 +29,76 @@ cliente = gspread.authorize(creds)
 libro = cliente.open("LISTAS-CLUBES")
 
 # ----------------------------------
-# MESES
+# ENCONTRAR MESES
 # ----------------------------------
 
-MESES = {
-    1: "ENERO",
-    2: "FEBRERO",
-    3: "MARZO",
-    4: "ABRIL",
-    5: "MAYO",
-    6: "JUNIO",
-    7: "JULIO",
-    8: "AGOSTO",
-    9: "SEPTIEMBRE",
-    10: "OCTUBRE",
-    11: "NOVIEMBRE",
-    12: "DICIEMBRE"
-}
+def obtener_alumnos_mes(hoja):
+
+    datos = hoja.get_all_values()
+
+    zona = pytz.timezone("America/Mexico_City")
+    ahora = datetime.now(zona)
+
+    MESES = {
+        1:"ENERO",
+        2:"FEBRERO",
+        3:"MARZO",
+        4:"ABRIL",
+        5:"MAYO",
+        6:"JUNIO",
+        7:"JULIO",
+        8:"AGOSTO",
+        9:"SEPTIEMBRE",
+        10:"OCTUBRE",
+        11:"NOVIEMBRE",
+        12:"DICIEMBRE"
+    }
+
+    mes_actual = MESES[ahora.month]
+
+    fila_mes = None
+
+    for i, fila in enumerate(datos):
+
+        texto = " ".join(fila).upper()
+
+        if "ASISTENCIA" in texto and mes_actual in texto:
+            fila_mes = i
+            break
+
+    if fila_mes is None:
+        return []
+
+    alumnos = []
+
+    # empezar a leer alumnos
+    def obtener_alumnos_mes(hoja):
+
+        datos = hoja.get_all_values()
+
+        if fila_mes is None:
+            return []
+
+        alumnos = []
+
+        # empezar a leer alumnos
+        for i in range(fila_mes + 3, len(datos)):
+
+            fila = datos[i]
+
+            texto = " ".join(fila).upper()
+
+            if "ASISTENCIA" in texto:
+                break
+
+            if len(fila) < 2 or fila[1] == "":
+                break
+
+            alumnos.append(fila[1])
+
+        return alumnos
+
+
 
 # ----------------------------------
 # ENCONTRAR COLUMNA DEL DÍA
