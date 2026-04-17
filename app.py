@@ -228,9 +228,9 @@ def estadisticas(club):
     elif club == "basquet":
         hoja = libro.worksheet("BASQUET BASICO")
 
-    datos = hoja.get_all_values()
+    datos = hoja.col_values(1)
 
-    total_alumnos = len(datos) - 1
+    total_alumnos = len([nombre for nombre in datos if nombre.strip() != ""]) - 1
 
     asistencias = 0
     faltas = 0
