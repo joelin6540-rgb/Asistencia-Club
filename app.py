@@ -92,7 +92,7 @@ def encontrar_fila_alumno(hoja, nombre):
 
     for i, fila in enumerate(datos):
 
-        if fila and fila[0].strip().upper() == nombre.strip().upper():
+        if len(fila) > 1 and fila[1].strip().upper() == nombre.strip().upper():
             return i + 1
 
     return None
@@ -126,8 +126,8 @@ def asistencia_tenis():
     alumnos = []
 
     for fila in datos:
-        if fila and fila[0] != "":
-            alumnos.append(fila[0])
+        if len(fila) > 1 and fila[1] != "":
+            alumnos.append(fila[1])
 
     return render_template(
         "asistencia.html",
