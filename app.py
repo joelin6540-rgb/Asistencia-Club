@@ -253,7 +253,10 @@ def estadisticas(club):
         asist = 0
         falt = 0
 
-        for celda in fila[1:]:
+        # SOLO leer columnas del mes actual
+        columnas_mes = fila[1:32]  # días del mes (1-31)
+
+        for celda in columnas_mes:
 
             if celda in ["🎾", "🏀", "✓"]:
                 asist += 1
@@ -266,16 +269,22 @@ def estadisticas(club):
         conteo_asistencias[nombre] = asist
         conteo_faltas[nombre] = falt
 
+    # TOP asistencias (solo alumnos con al menos 1 asistencia)
+
     top_asistencias = sorted(
-        conteo_asistencias.items(),
+        [(n, a) for n, a in conteo_asistencias.items() if a > 0],
         key=lambda x: x[1],
         reverse=True
     )[:5]
+
+    # Alumno con más faltas
 
     alumno_mas_faltas = max(
         conteo_faltas.items(),
         key=lambda x: x[1]
     )
+
+    # Alertas (3 faltas o más)
 
     alertas = [
         nombre for nombre, f in conteo_faltas.items()
