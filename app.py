@@ -221,7 +221,7 @@ def guardar(club):
 
     # elegir emoji según el club
     if club.lower() == "tenis":
-        presente = "🎾"
+        presente = "🥎"
     elif club.lower() == "basquet":
         presente = "🏀"
     else:
