@@ -192,10 +192,10 @@ def asistencia_tenis():
 # ASISTENCIA BASQUET
 # --------------------------------
 
-@app.route("/asistencia/tenis")
+@app.route("/asistencia/basquet")
 def asistencia_tenis():
 
-    hoja = obtener_hoja("tenis")
+    hoja = obtener_hoja("BASQUET BASICO")
     alumnos = obtener_alumnos_mes(hoja)
 
     zona = pytz.timezone("America/Mexico_City")
@@ -205,7 +205,7 @@ def asistencia_tenis():
     return render_template(
         "asistencia.html",
         alumnos=alumnos,
-        club="tenis",
+        club="basquet",
         fecha=fecha
     )
 
