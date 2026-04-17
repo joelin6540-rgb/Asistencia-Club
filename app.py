@@ -238,7 +238,8 @@ def guardar(club):
             else:
                 hoja.update_cell(fila, columna_dia, "❌")
 
-    return redirect(f"/asistencia/{club}")
+
+return render_template("confirmacion.html", club=club)
 
 
 # --------------------------------
