@@ -219,6 +219,14 @@ def guardar(club):
 
     alumnos = obtener_alumnos_mes(hoja)
 
+    # elegir emoji según el club
+    if club.lower() == "tenis":
+        presente = "🎾"
+    elif club.lower() == "basquet":
+        presente = "🏀"
+    else:
+        presente = "✔"
+
     for alumno in alumnos:
 
         fila = encontrar_fila_alumno(hoja, alumno)
@@ -226,7 +234,7 @@ def guardar(club):
         if fila and columna_dia:
 
             if alumno in alumnos_presentes:
-                hoja.update_cell(fila, columna_dia, "✔")
+                hoja.update_cell(fila, columna_dia, presente)
             else:
                 hoja.update_cell(fila, columna_dia, "❌")
 
