@@ -5,7 +5,7 @@ from datetime import datetime
 import pytz
 import json
 import os
-from sheets import obtener_hoja
+
 
 app = Flask(__name__)
 
