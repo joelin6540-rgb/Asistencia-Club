@@ -228,7 +228,7 @@ def guardar(club):
             if alumno in alumnos_presentes:
                 hoja.update_cell(fila, columna_dia, "✔")
             else:
-                hoja.update_cell(fila, columna_dia, "/")
+                hoja.update_cell(fila, columna_dia, "❌")
 
     return redirect(f"/asistencia/{club}")
 
