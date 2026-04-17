@@ -8,9 +8,9 @@ import os
 
 app = Flask(__name__)
 
-# ----------------------------------
-# CONEXIÓN A GOOGLE SHEETS (RENDER)
-# ----------------------------------
+# --------------------------------
+# CONEXION GOOGLE SHEETS
+# --------------------------------
 
 scope = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -28,100 +28,57 @@ cliente = gspread.authorize(creds)
 
 libro = cliente.open("LISTAS-CLUBES")
 
-# ----------------------------------
-# ENCONTRAR MESES
-# ----------------------------------
+# --------------------------------
+# MESES
+# --------------------------------
 
-def obtener_alumnos_mes(hoja):
+MESES = {
+    1:"ENERO",
+    2:"FEBRERO",
+    3:"MARZO",
+    4:"ABRIL",
+    5:"MAYO",
+    6:"JUNIO",
+    7:"JULIO",
+    8:"AGOSTO",
+    9:"SEPTIEMBRE",
+    10:"OCTUBRE",
+    11:"NOVIEMBRE",
+    12:"DICIEMBRE"
+}
+
+# --------------------------------
+# ENCONTRAR BLOQUE DEL MES
+# --------------------------------
+
+def encontrar_bloque_mes(hoja):
 
     datos = hoja.get_all_values()
 
     zona = pytz.timezone("America/Mexico_City")
     ahora = datetime.now(zona)
 
-    MESES = {
-        1:"ENERO",
-        2:"FEBRERO",
-        3:"MARZO",
-        4:"ABRIL",
-        5:"MAYO",
-        6:"JUNIO",
-        7:"JULIO",
-        8:"AGOSTO",
-        9:"SEPTIEMBRE",
-        10:"OCTUBRE",
-        11:"NOVIEMBRE",
-        12:"DICIEMBRE"
-    }
-
     mes_actual = MESES[ahora.month]
-
-    fila_mes = None
 
     for i, fila in enumerate(datos):
 
         texto = " ".join(fila).upper()
 
         if "ASISTENCIA" in texto and mes_actual in texto:
-            fila_mes = i
-            break
+            return i
 
-    if fila_mes is None:
-        return []
-
-    alumnos = []
-
-    # empezar a leer alumnos
-    def obtener_alumnos_mes(hoja):
-
-        datos = hoja.get_all_values()
-
-        if fila_mes is None:
-            return []
-
-        alumnos = []
-
-        # empezar a leer alumnos
-        for i in range(fila_mes + 3, len(datos)):
-
-            fila = datos[i]
-
-            texto = " ".join(fila).upper()
-
-            if "ASISTENCIA" in texto:
-                break
-
-            if len(fila) < 2 or fila[1] == "":
-                break
-
-            alumnos.append(fila[1])
-
-        return alumnos
+    return None
 
 
-
-# ----------------------------------
-# ENCONTRAR COLUMNA DEL DÍA
-# ----------------------------------
+# --------------------------------
+# ENCONTRAR COLUMNA DEL DIA
+# --------------------------------
 
 def encontrar_columna_dia(hoja, dia):
 
     datos = hoja.get_all_values()
 
-    zona = pytz.timezone("America/Mexico_City")
-    ahora = datetime.now(zona)
-
-    mes_actual = MESES[ahora.month]
-
-    fila_mes = None
-
-    for i, fila in enumerate(datos):
-
-        texto = " ".join(fila).upper()
-
-        if "ASISTENCIA" in texto and mes_actual in texto:
-            fila_mes = i
-            break
+    fila_mes = encontrar_bloque_mes(hoja)
 
     if fila_mes is None:
         return None
@@ -135,52 +92,95 @@ def encontrar_columna_dia(hoja, dia):
 
     return None
 
-# ----------------------------------
+
+# --------------------------------
+# OBTENER ALUMNOS DEL MES
+# --------------------------------
+
+def obtener_alumnos_mes(hoja):
+
+    datos = hoja.get_all_values()
+
+    fila_mes = encontrar_bloque_mes(hoja)
+
+    if fila_mes is None:
+        return []
+
+    alumnos = []
+
+    for i in range(fila_mes + 2, len(datos)):
+
+        fila = datos[i]
+
+        texto = " ".join(fila).upper()
+
+        # detener si aparece otro mes
+        if "ASISTENCIA" in texto:
+            break
+
+        if len(fila) < 2:
+            break
+
+        nombre = fila[1].strip()
+
+        if nombre == "":
+            break
+
+        alumnos.append(nombre)
+
+    return alumnos
+
+
+# --------------------------------
 # ENCONTRAR FILA DEL ALUMNO
-# ----------------------------------
+# --------------------------------
 
 def encontrar_fila_alumno(hoja, nombre):
 
     datos = hoja.get_all_values()
 
-    for i, fila in enumerate(datos):
+    fila_mes = encontrar_bloque_mes(hoja)
 
-        if len(fila) > 1 and fila[1].strip().upper() == nombre.strip().upper():
+    if fila_mes is None:
+        return None
+
+    for i in range(fila_mes + 2, len(datos)):
+
+        fila = datos[i]
+
+        if len(fila) < 2:
+            break
+
+        if fila[1].strip().upper() == nombre.upper():
             return i + 1
 
     return None
 
-# ----------------------------------
-# PÁGINA PRINCIPAL
-# ----------------------------------
+
+# --------------------------------
+# PAGINAS
+# --------------------------------
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
-# ----------------------------------
-# CLUBES
-# ----------------------------------
 
 @app.route("/clubes")
 def clubes():
     return render_template("clubes.html")
 
-# ----------------------------------
+
+# --------------------------------
 # ASISTENCIA TENIS
-# ----------------------------------
+# --------------------------------
 
 @app.route("/asistencia/tenis")
 def asistencia_tenis():
 
     hoja = libro.worksheet("TENIS")
-    datos = hoja.get_all_values()
 
-    alumnos = []
-
-    for fila in datos:
-        if len(fila) > 1 and fila[1] != "":
-            alumnos.append(fila[1])
+    alumnos = obtener_alumnos_mes(hoja)
 
     return render_template(
         "asistencia.html",
@@ -188,9 +188,10 @@ def asistencia_tenis():
         club="tenis"
     )
 
-# ----------------------------------
+
+# --------------------------------
 # GUARDAR ASISTENCIA
-# ----------------------------------
+# --------------------------------
 
 @app.route("/guardar/<club>", methods=["POST"])
 def guardar(club):
@@ -219,15 +220,8 @@ def guardar(club):
 
     return redirect(f"/asistencia/{club}")
 
-# ----------------------------------
-# CONFIRMACIÓN
-# ----------------------------------
 
-@app.route("/confirmacion")
-def confirmacion():
-    return render_template("confirmacion.html")
-
-# ----------------------------------
+# --------------------------------
 
 if __name__ == "__main__":
     app.run(debug=True)
