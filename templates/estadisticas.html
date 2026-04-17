@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="es">
+
 <head>
 
+<meta charset="UTF-8">
 <title>Estadísticas</title>
-
-<style>
 
 <style>
 
@@ -13,13 +13,14 @@ body{
 font-family: Arial, sans-serif;
 text-align:center;
 padding:40px;
+margin:0;
 
-background-image: url("/static/fondo_estadisticas.png");
-background-size: 300px;
-background-repeat: repeat;
+/* fondo */
+background-image:url("/static/estadisticas.png");
+background-size:300px;
+background-repeat:repeat;
+background-attachment:fixed;
 }
-
-</style>
 
 .card{
 background:white;
@@ -27,7 +28,7 @@ padding:30px;
 border-radius:10px;
 width:400px;
 margin:auto;
-box-shadow:0 4px 10px rgba(0,0,0,0.1);
+box-shadow:0 4px 10px rgba(0,0,0,0.15);
 }
 
 .btn{
@@ -51,12 +52,16 @@ padding:0;
 }
 
 li{
-margin:5px 0;
+margin:6px 0;
 }
 
 .alerta{
 color:red;
 font-weight:bold;
+}
+
+hr{
+margin:25px 0;
 }
 
 </style>
@@ -110,4 +115,5 @@ font-weight:bold;
 </div>
 
 </body>
+
 </html>
