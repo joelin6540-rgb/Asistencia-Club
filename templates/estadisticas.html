@@ -2,51 +2,58 @@
 
 <html>
 <head>
-    <title>Estadísticas</title>
-    <style>
-        body{
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 40px;
-        }
 
-```
-    h1{
-        margin-bottom: 20px;
-    }
+<title>Estadísticas</title>
 
-    .card{
-        background: white;
-        padding: 30px;
-        border-radius: 10px;
-        width: 350px;
-        margin: auto;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
+<style>
 
-    .dato{
-        font-size: 20px;
-        margin: 15px 0;
-    }
+body{
+font-family: Arial, sans-serif;
+text-align: center;
+background-color: #f5f5f5;
+margin:0;
+padding:40px;
+}
 
-    .btn{
-        display: inline-block;
-        margin-bottom: 25px;
-        padding: 10px 20px;
-        background: #2d7be5;
-        color: white;
-        text-decoration: none;
-        border-radius: 8px;
-        font-weight: bold;
-    }
+.card{
+background:white;
+padding:30px;
+border-radius:10px;
+width:400px;
+margin:auto;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
 
-    .btn:hover{
-        background: #1f5fb8;
-    }
+.btn{
+display:inline-block;
+margin-bottom:25px;
+padding:10px 20px;
+background:#2d7be5;
+color:white;
+text-decoration:none;
+border-radius:8px;
+font-weight:bold;
+}
+
+.btn:hover{
+background:#1f5fb8;
+}
+
+ul{
+list-style:none;
+padding:0;
+}
+
+li{
+margin:5px 0;
+}
+
+.alerta{
+color:red;
+font-weight:bold;
+}
+
 </style>
-```
 
 </head>
 
@@ -60,11 +67,39 @@
 
 <h2>Club: {{ club }}</h2>
 
-<p class="dato"><b>Total de alumnos:</b> {{ total_alumnos }}</p>
+<p><b>Total de alumnos:</b> {{ total_alumnos }}</p>
 
-<p class="dato"><b>Asistencias registradas:</b> {{ asistencias }}</p>
+<p><b>Asistencias registradas:</b> {{ asistencias }}</p>
 
-<p class="dato"><b>Faltas registradas:</b> {{ faltas }}</p>
+<p><b>Faltas registradas:</b> {{ faltas }}</p>
+
+<hr>
+
+<h3>🏆 Top asistencias</h3>
+
+<ul>
+{% for alumno, num in top_asistencias %}
+<li>{{ alumno }} - {{ num }} asistencias</li>
+{% endfor %}
+</ul>
+
+<hr>
+
+<h3>🚫 Alumno con más faltas</h3>
+
+<p>
+{{ alumno_mas_faltas[0] }} - {{ alumno_mas_faltas[1] }} faltas
+</p>
+
+<hr>
+
+<h3>⚠️ Alertas de faltas</h3>
+
+<ul>
+{% for alumno in alertas %}
+<li class="alerta">⚠️ {{ alumno }} tiene 3 o más faltas</li>
+{% endfor %}
+</ul>
 
 </div>
 

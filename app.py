@@ -225,29 +225,72 @@ def estadisticas(club):
 
     if club == "tenis":
         hoja = libro.worksheet("TENIS")
+
     elif club == "basquet":
         hoja = libro.worksheet("BASQUET BASICO")
 
-    datos = hoja.col_values(1)
+    datos = hoja.get_all_values()
 
-    total_alumnos = len([nombre for nombre in datos if nombre.strip() != ""]) - 1
+    nombres = hoja.col_values(1)
+
+    alumnos = [n for n in nombres[1:] if n.strip() != ""]
+
+    total_alumnos = len(alumnos)
 
     asistencias = 0
     faltas = 0
 
+    conteo_asistencias = {}
+    conteo_faltas = {}
+
     for fila in datos[1:]:
+
+        nombre = fila[0]
+
+        if nombre.strip() == "":
+            continue
+
+        asist = 0
+        falt = 0
+
         for celda in fila[1:]:
+
             if celda in ["🎾", "🏀", "✓"]:
+                asist += 1
                 asistencias += 1
+
             elif celda == "❌":
+                falt += 1
                 faltas += 1
+
+        conteo_asistencias[nombre] = asist
+        conteo_faltas[nombre] = falt
+
+    top_asistencias = sorted(
+        conteo_asistencias.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )[:5]
+
+    alumno_mas_faltas = max(
+        conteo_faltas.items(),
+        key=lambda x: x[1]
+    )
+
+    alertas = [
+        nombre for nombre, f in conteo_faltas.items()
+        if f >= 3
+    ]
 
     return render_template(
         "estadisticas.html",
         club=club,
         total_alumnos=total_alumnos,
         asistencias=asistencias,
-        faltas=faltas
+        faltas=faltas,
+        top_asistencias=top_asistencias,
+        alumno_mas_faltas=alumno_mas_faltas,
+        alertas=alertas
     )
 
 # --------------------------------
