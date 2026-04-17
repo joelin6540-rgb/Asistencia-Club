@@ -1,42 +1,40 @@
 <!DOCTYPE html>
 
-<html>
-
+<html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Asistencia guardada</title>
 
 <style>
-
 body{
-    font-family: Arial;
-    background:#f4f6f8;
+    font-family: Arial, sans-serif;
     text-align:center;
-    padding:40px;
+    padding-top:100px;
+    margin:0;
+
+    /* FONDO */
+    background-image:url("{{ url_for('static', filename='fondo_inicio.png') }}");
+    background-size:260px;
+    background-repeat:repeat;
+    background-attachment:fixed;
 }
 
-h1{
-    font-size:32px;
-}
-
-.boton{
+.btn{
     display:block;
     width:260px;
     margin:20px auto;
-    padding:18px;
-    font-size:20px;
-    border-radius:12px;
+    padding:15px;
+    font-size:18px;
+    border-radius:10px;
     text-decoration:none;
-    background:#2d89ef;
     color:white;
+    font-weight:bold;
+    background:#2d7be5;
 }
 
-.boton:hover{
-    background:#1b5fad;
+.btn:hover{
+    background:#1f5fb8;
 }
-
 </style>
 
 </head>
@@ -45,14 +43,9 @@ h1{
 
 <h1>✅ Asistencia guardada</h1>
 
-<a class="boton" href="/asistencia/{{ club }}">
-Pasar otra lista
-</a>
+<a class="btn" href="/asistencia/{{ club }}">Pasar otra lista</a>
 
-<a class="boton" href="/">
-Volver al inicio
-</a>
+<a class="btn" href="/">Volver al inicio</a>
 
 </body>
-
 </html>

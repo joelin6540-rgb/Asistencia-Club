@@ -1,71 +1,69 @@
 <!DOCTYPE html>
 
-<html>
-
+<html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Asistencia Club</title>
 
 <style>
-
 body{
-font-family: Arial, sans-serif;
-text-align:center;
-padding-top:80px;
-margin:0;
+    font-family: Arial, sans-serif;
+    text-align:center;
+    padding-top:80px;
+    margin:0;
 
-background-image:url("/static/fondo_inicio.png");
-background-size:300px;
-background-repeat:repeat;
-background-attachment:fixed;
+    /* FONDO */
+    background-image:url("{{ url_for('static', filename='fondo_inicio.png') }}");
+    background-size:260px;
+    background-repeat:repeat;
+    background-attachment:fixed;
 }
 
-h2{
-    margin-bottom:40px;
-}
-
-.club{
+/* Botones */
+.btn{
     display:block;
-    width:220px;
-    margin:15px auto;
-    padding:20px;
-    font-size:22px;
-    border:none;
-    border-radius:15px;
-    background:#2d89ef;
-    color:white;
+    width:260px;
+    margin:20px auto;
+    padding:18px;
+    font-size:20px;
+    border-radius:12px;
     text-decoration:none;
+    color:white;
+    font-weight:bold;
 }
+
 .tenis{
     background:#4CAF50;
 }
 
 .basquet{
-    background:#f57c00;
-}
-.club:hover{
-    background:#1b5fad;
+    background:#F57C00;
 }
 
+.est{
+    background:#2d7be5;
+}
+
+.btn:hover{
+    opacity:0.9;
+}
 </style>
 
 </head>
 
 <body>
 
-<h2>Selecciona club</h2>
+<h1>Selecciona club</h1>
 
-<a class="club tenis" href="/asistencia/tenis">🥎 Tenis</a>
+<a class="btn tenis" href="/asistencia/tenis">🎾 Tenis</a>
 
-<a class="club basquet" href="/asistencia/basquet">🏀 Basquet</a>
+<a class="btn basquet" href="/asistencia/basquet">🏀 Basquet</a>
 
 <br><br>
 
-<a class="club" href="/estadisticas/tenis">📊 Estadísticas Tenis</a>
-<a class="club" href="/estadisticas/basquet">📊 Estadísticas Básquet</a>
+<a class="btn est" href="/estadisticas/tenis">📊 Estadísticas Tenis</a>
+
+<a class="btn est" href="/estadisticas/basquet">📊 Estadísticas Básquet</a>
 
 </body>
-
 </html>
