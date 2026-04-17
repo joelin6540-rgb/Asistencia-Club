@@ -195,7 +195,17 @@ def asistencia_tenis():
 
 @app.route("/guardar/<club>", methods=["POST"])
 def guardar(club):
+    from datetime import datetime  # asegúrate de tener este import arriba del archivo
 
+    # ...
+
+    fecha_str = request.form.get("fecha")
+    if not fecha_str:
+        return "Falta la fecha", 400
+
+    fecha = datetime.strptime(fecha_str, "%Y-%m-%d")
+    dia = fecha.day
+    mes = fecha.month
     hoja = libro.worksheet(club.upper())
 
     alumnos_presentes = request.form.getlist("alumnos_presentes")
