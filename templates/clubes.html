@@ -1,75 +1,147 @@
 <!DOCTYPE html>
-<html>
 
+<html lang="es">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Lista de asistencia</title>
 
 <style>
 
 body{
-font-family: Arial, Helvetica, sans-serif;
-text-align:center;
-background:#f2f2f2;
+font-family: Arial, sans-serif;
 margin:0;
-padding-top:40px;
+padding:40px;
+
+display:flex;
+flex-direction:column;
+align-items:center;
+
+background-image:url("{{ url_for('static', filename='fondo_' + club + '.png') }}");
+background-size:200px;
+background-repeat:repeat;
 }
 
-h1{
-font-size:32px;
-margin-bottom:40px;
+.card{
+width:90%;
+max-width:520px;
+padding:30px;
+
+border-radius:18px;
+background:rgba(255,255,255,0.96);
+
+box-shadow:0 10px 25px rgba(0,0,0,0.25);
 }
 
-.club{
+h2{
+text-align:center;
+margin-bottom:20px;
+}
+
+.btn{
 display:block;
-width:260px;
-margin:20px auto;
-padding:25px;
-font-size:26px;
-border-radius:20px;
+width:90%;
+max-width:320px;
+
+margin:15px auto;
+padding:16px;
+
+font-size:18px;
+border-radius:10px;
+
+border:none;
+
+background:#2d7be5;
 color:white;
-text-decoration:none;
+
 font-weight:bold;
-box-shadow:0 4px 10px rgba(0,0,0,0.2);
+cursor:pointer;
 }
 
-.tenis{
-background:#2ecc71;
+.btn:hover{
+background:#1f5fb8;
 }
 
-.basquet{
-background:#e67e22;
+.fecha{
+font-size:18px;
+margin-bottom:20px;
 }
 
-.estadisticas{
-background:#3498db;
+input[type="date"]{
+font-size:16px;
+padding:8px;
+border-radius:6px;
+border:1px solid #ccc;
 }
 
-.club:hover{
-opacity:0.9;
+.alumno-card{
+
+display:flex;
+align-items:center;
+gap:14px;
+
+background:white;
+
+padding:16px;
+margin:10px 0;
+
+border-radius:15px;
+border:2px solid #e7e7e7;
+
+font-size:18px;
+
+box-shadow:0 3px 10px rgba(0,0,0,0.08);
+
+}
+
+.alumno-card input{
+
+transform:scale(1.3);
+
 }
 
 </style>
-</head>
 
+</head>
 
 <body>
 
-<h1>Selecciona club</h1>
+<div class="card">
 
-<a class="club tenis" href="/asistencia/tenis">
-🥎 Tenis
-</a>
+<h2>Lista de asistencia</h2>
 
-<a class="club basquet" href="/asistencia/basquet">
-🏀 Basquet
-</a>
+<button class="btn" onclick="history.back()">⬅ Atrás</button>
 
-<br>
+<form method="POST" action="/guardar/{{ club }}">
 
-<a class="club estadisticas" href="/estadisticas">
-📊 Estadísticas
-</a>
+<div class="fecha">
+
+Fecha de la clase:<br>
+
+<input type="date" name="fecha" value="{{fecha}}">
+
+</div>
+
+{% for alumno in alumnos %}
+
+<label class="alumno-card">
+
+<input type="checkbox" name="alumnos_presentes" value="{{ alumno }}">
+
+<span>{{ alumno }}</span>
+
+</label>
+
+{% endfor %}
+
+<button class="btn" type="submit">
+
+Guardar asistencia
+
+</button>
+
+</form>
+
+</div>
 
 </body>
-
 </html>
