@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 import pytz
 import json
 import os
+
 
 app = Flask(__name__)
 
@@ -48,77 +49,6 @@ MESES = {
 }
 
 # --------------------------------
-# CLUBES
-# --------------------------------
-
-CLUBES = {
-
-    "tenis": {
-        "hoja": "TENIS",
-        "emoji": "🥎",
-        "fondo": "fondo_tenis.png",
-        "nombre": "Tenis"
-    },
-
-    "basquet_basico": {
-        "hoja": "BASQUET BASICO",
-        "emoji": "🏀",
-        "fondo": "fondo_basquet.png",
-        "nombre": "Basquet Básico"
-    },
-
-    "basquet_avanzado": {
-        "hoja": "BASQUET AVANZADO",
-        "emoji": "🏀",
-        "fondo": "fondo_basquet.png",
-        "nombre": "Basquet Avanzado"
-    },
-
-    "futbol": {
-        "hoja": "FUTBOL 25/26",
-        "emoji": "⚽",
-        "fondo": "fondo_futbol.png",
-        "nombre": "Fútbol"
-    },
-
-    "voleibol": {
-        "hoja": "VOLEIBOL",
-        "emoji": "🏐",
-        "fondo": "fondo_voley.png",
-        "nombre": "Voleibol"
-    },
-
-    "karate": {
-        "hoja": "KARATE",
-        "emoji": "🥋",
-        "fondo": "fondo_karate.png",
-        "nombre": "Karate"
-    },
-
-    "danza": {
-        "hoja": "DANZA",
-        "emoji": "💃",
-        "fondo": "fondo_danza.png",
-        "nombre": "Danza"
-    },
-
-    "robotica": {
-        "hoja": "ROBOTICA",
-        "emoji": "🤖",
-        "fondo": "fondo_robotica.png",
-        "nombre": "Robótica"
-    },
-
-    "musica": {
-        "hoja": "MUSICA",
-        "emoji": "🎵",
-        "fondo": "fondo_musica.png",
-        "nombre": "Música"
-    }
-
-}
-
-# --------------------------------
 # ENCONTRAR BLOQUE DEL MES
 # --------------------------------
 
@@ -139,6 +69,7 @@ def encontrar_bloque_mes(hoja):
             return i
 
     return None
+
 
 # --------------------------------
 # ENCONTRAR COLUMNA DEL DIA
@@ -162,6 +93,7 @@ def encontrar_columna_dia(hoja, dia):
 
     return None
 
+
 # --------------------------------
 # OBTENER ALUMNOS DEL MES
 # --------------------------------
@@ -183,6 +115,7 @@ def obtener_alumnos_mes(hoja):
 
         texto = " ".join(fila).upper()
 
+        # detener si aparece otro mes
         if "ASISTENCIA" in texto:
             break
 
@@ -197,6 +130,7 @@ def obtener_alumnos_mes(hoja):
         alumnos.append(nombre)
 
     return alumnos
+
 
 # --------------------------------
 # ENCONTRAR FILA DEL ALUMNO
@@ -223,60 +157,77 @@ def encontrar_fila_alumno(hoja, nombre):
 
     return None
 
+
 # --------------------------------
 # PAGINAS
 # --------------------------------
 
 @app.route("/")
 def index():
-    return render_template("index.html", clubes=CLUBES)
+    return render_template("index.html")
+
 
 @app.route("/clubes")
 def clubes():
-    return render_template("clubes.html", clubes=CLUBES)
+    return render_template("clubes.html")
+
 
 # --------------------------------
-# ASISTENCIA DINAMICA
+# ASISTENCIA TENIS
 # --------------------------------
 
-@app.route("/asistencia/<club>")
-def asistencia(club):
+@app.route("/asistencia/tenis")
+def asistencia_tenis():
 
-    if club not in CLUBES:
-        return "Club no encontrado"
-
-    info_club = CLUBES[club]
-
-    hoja = libro.worksheet(info_club["hoja"])
+    hoja = libro.worksheet("TENIS")
 
     alumnos = obtener_alumnos_mes(hoja)
 
     zona = pytz.timezone("America/Mexico_City")
     ahora = datetime.now(zona)
-
     fecha = ahora.strftime("%Y-%m-%d")
 
     return render_template(
         "asistencia.html",
         alumnos=alumnos,
-        club=club,
-        fecha=fecha,
-        info_club=info_club
+        club="tenis",
+        fecha=fecha
     )
 
 # --------------------------------
-# ESTADISTICAS
+# ASISTENCIA BASQUET
+# --------------------------------
+
+@app.route("/asistencia/basquet")
+def asistencia_basquet():
+
+    hoja = libro.worksheet("BASQUET BASICO")
+
+    alumnos = obtener_alumnos_mes(hoja)
+
+    zona = pytz.timezone("America/Mexico_City")
+    ahora = datetime.now(zona)
+    fecha = ahora.strftime("%Y-%m-%d")
+
+    return render_template(
+        "asistencia.html",
+        alumnos=alumnos,
+        club="basquet",
+        fecha=fecha
+    )
+
+# --------------------------------
+# Estadisticas
 # --------------------------------
 
 @app.route("/estadisticas/<club>")
 def estadisticas(club):
 
-    if club not in CLUBES:
-        return "Club no encontrado"
+    if club == "tenis":
+        hoja = libro.worksheet("TENIS")
 
-    info_club = CLUBES[club]
-
-    hoja = libro.worksheet(info_club["hoja"])
+    elif club == "basquet":
+        hoja = libro.worksheet("BASQUET BASICO")
 
     datos = hoja.get_all_values()
 
@@ -294,22 +245,20 @@ def estadisticas(club):
 
     for fila in datos[1:]:
 
-        if len(fila) == 0:
-            continue
+        nombre = fila[0]
 
-        nombre = fila[0].strip()
-
-        if nombre == "":
+        if nombre.strip() == "":
             continue
 
         asist = 0
         falt = 0
 
-        columnas_mes = fila[1:32]
+        # SOLO leer columnas del mes actual
+        columnas_mes = fila[1:32]  # días del mes (1-31)
 
         for celda in columnas_mes:
 
-            if celda in ["🥎", "🏀", "⚽", "🏐", "🥋", "💃", "🤖", "🎵", "✓"]:
+            if celda in ["🎾", "🏀", "✓"]:
                 asist += 1
                 asistencias += 1
 
@@ -320,16 +269,22 @@ def estadisticas(club):
         conteo_asistencias[nombre] = asist
         conteo_faltas[nombre] = falt
 
+    # TOP asistencias (solo alumnos con al menos 1 asistencia)
+
     top_asistencias = sorted(
         [(n, a) for n, a in conteo_asistencias.items() if a > 0],
         key=lambda x: x[1],
         reverse=True
     )[:5]
 
+    # Alumno con más faltas
+
     alumno_mas_faltas = max(
         conteo_faltas.items(),
         key=lambda x: x[1]
     )
+
+    # Alertas (3 faltas o más)
 
     alertas = [
         nombre for nombre, f in conteo_faltas.items()
@@ -339,7 +294,6 @@ def estadisticas(club):
     return render_template(
         "estadisticas.html",
         club=club,
-        info_club=info_club,
         total_alumnos=total_alumnos,
         asistencias=asistencias,
         faltas=faltas,
@@ -354,30 +308,39 @@ def estadisticas(club):
 
 @app.route("/guardar/<club>", methods=["POST"])
 def guardar(club):
+    from datetime import datetime  # asegúrate de tener este import arriba del archivo
 
-    if club not in CLUBES:
-        return "Club no encontrado"
-
-    info_club = CLUBES[club]
-
-    hoja = libro.worksheet(info_club["hoja"])
+    # ...
 
     fecha_str = request.form.get("fecha")
-
     if not fecha_str:
         return "Falta la fecha", 400
 
     fecha = datetime.strptime(fecha_str, "%Y-%m-%d")
-
     dia = fecha.day
+    mes = fecha.month
+    if club == "tenis":
+        hoja = libro.worksheet("TENIS")
+    elif club == "basquet":
+        hoja = libro.worksheet("BASQUET BASICO")
 
     alumnos_presentes = request.form.getlist("alumnos_presentes")
+
+    fecha = request.form.get("fecha")
+    fecha_obj = datetime.strptime(fecha, "%Y-%m-%d")
+    dia = fecha_obj.day
 
     columna_dia = encontrar_columna_dia(hoja, dia)
 
     alumnos = obtener_alumnos_mes(hoja)
 
-    presente = info_club["emoji"]
+    # elegir emoji según el club
+    if club.lower() == "tenis":
+        presente = "🥎"
+    elif club.lower() == "basquet":
+        presente = "🏀"
+    else:
+        presente = "✔"
 
     for alumno in alumnos:
 
@@ -387,16 +350,14 @@ def guardar(club):
 
             if alumno in alumnos_presentes:
                 hoja.update_cell(fila, columna_dia, presente)
-
             else:
                 hoja.update_cell(fila, columna_dia, "❌")
 
-    return render_template(
-        "confirmacion.html",
-        club=club
-    )
+
+    return render_template("confirmacion.html", club=club)
+
 
 # --------------------------------
 
-if name == "main":
+if __name__ == "__main__":
     app.run(debug=True)
