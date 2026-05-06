@@ -6,7 +6,7 @@ import pytz
 import json
 import os
 
-app = Flask(name)
+app = Flask(__name__)
 
 # --------------------------------
 # CONEXION GOOGLE SHEETS
